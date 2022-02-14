@@ -2,12 +2,13 @@
  * File              : mainWindow.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 11.02.2022
+ * Last Modified Date: 12.02.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
 #include "mainWindow.h"
 #include "smetaView.h"
+#include "itemsView.h"
 
 void gstroybat_application_on_activate (GtkApplication *app) {
 
@@ -18,9 +19,9 @@ void gstroybat_application_on_activate (GtkApplication *app) {
 	gtk_window_set_child(GTK_WINDOW(window), splitter);
 	
 	gtk_paned_set_start_child(GTK_PANED(splitter), gstroybat_smeta_table_view_new());
+	gtk_paned_set_end_child(GTK_PANED(splitter), gstroybat_items_table_view_new(NULL));	
 
-	GtkWidget *button1 = gtk_button_new_with_label("Button1");
-	gtk_paned_set_end_child(GTK_PANED(splitter), button1);	
+	mainWindow = window;
 	
 	gtk_window_present (GTK_WINDOW (window));
 }

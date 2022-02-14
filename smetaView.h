@@ -6,9 +6,7 @@
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
-#include <gtk/gtk.h>
-
-GtkListStore *gstroybat_smeta_table_model_new();
+#include "gstroybat.h"
 
 GtkWidget *gstroybat_smeta_table_view_new();
 
