@@ -1,0 +1,3 @@
+[submodule "stroybat"]
+	path = stroybat
+	url = https://github.com/igkuzm/stroybat
