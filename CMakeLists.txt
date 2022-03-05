@@ -32,9 +32,9 @@ add_executable(${TARGET}
 	mainWindow.c 
 	smetaView.c 
 	itemsView.c 
-	cp.c 
 	chworkdir.c 
 	openfile.c
+	chworkdir.c
 	itemsListView.c 
 	${RESOURCE_FILES}
 )

@@ -2,99 +2,144 @@
  * File              : chworkdir.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 04.09.2021
- * Last Modified Date: 10.02.2022
+ * Last Modified Date: 05.03.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "chworkdir.h"
 #include <stdbool.h>
-#include "cp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <libgen.h>
 #include <unistd.h>
+#ifdef __APPLE__
+#elif defined _WIN32 || defined _WIN64
+#include <Windows.h>
+#else
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
+#endif
 
-bool has_extension(char const *name, char const *extension) //check file extension
+#ifdef __APPLE__
+#elif defined _WIN32 || defined _WIN64
+#else
+int cp(const char *from, const char *to)
 {
-    size_t len = strlen(name);
-	size_t ext_len = strlen(extension);
-	char buf[128];
-	sprintf(buf, ".%s", extension);
-    return len > ext_len - 1 && strcmp(name + len - ext_len - 1, buf) == 0;
+    int fd_to, fd_from;
+    char buf[4096];
+    ssize_t nread;
+    int saved_errno;
+
+    fd_from = open(from, O_RDONLY);
+    if (fd_from < 0)
+        return -1;
+
+	if (stat(workDir, &st) == -1)
+		fd_to = open(to, O_WRONLY | O_CREAT | O_EXCL, 0666);
+	else
+		return 1;
+    
+	if (fd_to < 0)
+        goto out_error;
+
+    while (nread = read(fd_from, buf, sizeof buf), nread > 0)
+    {
+        char *out_ptr = buf;
+        ssize_t nwritten;
+
+        do {
+            nwritten = write(fd_to, out_ptr, nread);
+
+            if (nwritten >= 0)
+            {
+                nread -= nwritten;
+                out_ptr += nwritten;
+            }
+            else if (errno != EINTR)
+            {
+                goto out_error;
+            }
+        } while (nread > 0);
+    }
+
+    if (nread == 0)
+    {
+        if (close(fd_to) < 0)
+        {
+            fd_to = -1;
+            goto out_error;
+        }
+        close(fd_from);
+
+        /* Success! */
+        return 0;
+    }
+
+  out_error:
+    saved_errno = errno;
+
+    close(fd_from);
+    if (fd_to >= 0)
+        close(fd_to);
+
+    errno = saved_errno;
+    return -1;
 }
 
-//copy files with extensions (filetypes_ext, filetype_ext_count) from EXEC/../share/UV to WorkDir
-int copyResourcesToWorkDir(char *sourceDir, char *destinationDir, char *filetypes_ext[], int filetype_ext_count, bool overwrite){
-	//reading resources directory
-	printf("copy files from %s to %s\n", sourceDir, destinationDir);
-	
+//list of files in directory
+int copy_recursive(const char *source, const char *destination, int depth){
+	char error[BUFSIZ];
 	struct dirent *entry;
-	DIR *dp;
+	DIR *dp;	
 
-	dp = opendir(sourceDir);
-	if (dp == NULL) 
-	{
-		fprintf(stderr, "ERROR OPEN DIR %s\n", sourceDir);
-		errno = ENOENT;
+	dp = opendir(dir);
+	if (dp == NULL){
+		sprintf(error, "Can't open directory: %s", dir);
+		perror(error);
 		return ENOENT;
-	}
+	}	
 	while((entry = readdir(dp))){ //reading files
-		int i;
-		for (i = 0; i < filetype_ext_count; ++i) {
-			if (has_extension(entry->d_name, filetypes_ext[i])) { //if file has filetype extension
-				printf("Try to copy file: %s\n", entry->d_name);
-				
-				char source[1024];
-				char destination[1024];
-				
-				sprintf(source, "%s/%s", sourceDir, entry->d_name);
-				sprintf(destination, "%s/%s", destinationDir, entry->d_name);
-
-				if (!file_exists(destination) || overwrite){ //check if file exists and need of overwrite
-					printf("Copy source: %s to dest: %s\n", source, destination);
-					int erro = cp(source, destination, true);
-					if (erro){
-						fprintf(stderr, "ERROR TO COPY SOURCE: %s TO DEST: %s, err:%d\n", source, destination, erro);	
-					};
-				} else {
-					printf("No need to overwrite, file exists: %s\n", destination);
-				} 
+		char *filename = entry->d_name; 
+		char source_file[BUFSIZ];
+		sprintf("%s/%s", source, filename);
+		char dest_file[BUFSIZ];
+		sprintf("%s/%s", destination, filename);
+		if (depth < 10) {
+			switch (entry->d_type) {
+				case  DT_REG: cp(source_file, dest_file); break;
+				case  DT_LNK: cp(source_file, dest_file); break;
+				case  DT_DIR: depth++; copy_recursive(source_file, dest_file, depth); break;
+				default: break;
 			}
 		}
 	}
+	closedir(dp);
 	return 0;
 }
 
+#endif
+
 int changeWorkDir(char *argv[]){
-	int erro=0;
 	char *executable=dirname((char *)argv[0]);
-	char *workDir=calloc(BUFSIZ,sizeof(char));
-	if (!workDir) {
-		fprintf(stderr, "ERROR. Cannot allocate memory\n");		
-		errno = ENOMEM;
-		return ENOMEM;
-	}	
+	char workDir[BUFSIZ];
 #ifdef __APPLE__
 		sprintf(workDir, "%s%s", executable, "/../Resources"); //workdir for Apple is BUNDLE/../Resources
 #elif defined _WIN32 || defined _WIN64
 		sprintf(workDir, "%s", executable); //workdir for Windows is executable dir
 #else
 		//for Unix systems
-		//find homedir and create Stroybat
-		printf("HOMEDIR: %s\n", getenv("HOME"));
-		erro = sprintf(workDir, "%s%s", getenv("HOME"), "/stroybat"); 
-		if (erro == -1) {
-			fprintf(stderr,"%s\n", "ERROR to get homedir");
-		}
-		struct stat st = {0};
+		//find homedir and create new dir
+		char *progname = basename(argv[0]);
+		sprintf(workDir, "%s/%s", getenv("HOME"), progname); 
+		
+		//create directory if not exists
+		struct stat st;
 		if (stat(workDir, &st) == -1) {
-			erro = mkdir(workDir, 0700); //create HOME/Stroybat
-			if (erro == -1) {
-				fprintf(stderr,"%s\n", "ERROR to to create homedir/stroybat dir");
+			if (mkdir(workDir, 0700) == -1) {
+				perror("Can't create directory at $(HOME)");
 			}			
 		}
 
@@ -106,47 +151,17 @@ int changeWorkDir(char *argv[]){
 				perror ("first readlink");
 				exit (EXIT_FAILURE);
 			};
-		executable=dirname(selfpath);
+		execDir=dirname(selfpath);
 
-		char resourcedir[1024];
-		sprintf(resourcedir, "%s%s", executable, "/../share/stroybat"); //resources dir
+		char resourceDir[BUFSIZ];
+		sprintf(resourceDir, "%s/../share/%s", execDir, progname); //resources dir
+
 
 		//copy files from resources to workdir
-		char *filetypes_ext[] = {"db", "conf"}; //we need *.sqlite and *.conf files
-		erro = copyResourcesToWorkDir(resourcedir, workDir, filetypes_ext, 2, false);//copy resources
-		if (erro) {
-			fprintf(stderr, "ERROR TO COPY RESOURCES, err:%d\n", erro);
-		}
-
-		////copy Templates from resources to workdir
-		//char templates_source_dir[1024]; //source dir of templates		
-		//erro = sprintf(templates_source_dir, "%s%s", resourcedir, "/Templates"); 
-		//if (erro == -1) {
-			//fprintf(stderr,"%s\n", "ERROR to get Templates source dir");
-		//}		
-
-		//char templates_dest_dir[1024];
-		//erro = sprintf(templates_dest_dir, "%s%s", workDir, "/Templates"); 
-		//if (erro == -1) {
-			//fprintf(stderr,"%s\n", "ERROR to get Templates destination dir");
-		//}
-		//struct stat templates_st = {0};
-		//if (stat(templates_dest_dir, &templates_st) == -1) {
-			//erro = mkdir(templates_dest_dir, 0700); //create Templates dir
-			//if (erro == -1) {
-				//fprintf(stderr,"%s\n", "ERROR to to create homedir/stroybat/Templates dir");
-			//}			
-		//}		
-		
-		//char *templates_ext[] = {"rtf"};		
-		//erro = copyResourcesToWorkDir(templates_source_dir, templates_dest_dir, templates_ext, 1, false);//copy resources
-		//if (erro) {
-			//fprintf(stderr, "ERROR TO COPY RESOURCES, err:%d\n", erro);
-		//}
+		int copy_recursive(resourceDir, workDir, 0);
 		
 #endif
 	chdir(workDir); //change workdir
 	printf("Workdir changed to:%s\n", workDir);
-	free(workDir);
-	return erro;
+	return 0;
 }

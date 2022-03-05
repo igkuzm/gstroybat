@@ -2,16 +2,29 @@
  * File              : cp.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 04.09.2021
- * Last Modified Date: 11.10.2021
+ * Last Modified Date: 05.03.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
+#ifndef k_lib_cp_h__
+#define k_lib_cp_h__
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #include <stdio.h>
-#include <stdbool.h>
 
 //copy file FROM path to destination TO path
-extern int cp(const char *from, const char *to, bool owerwrite);
+int k_lib_cp(const char *from, const char *to);
 
-extern int cp_recursive(const char *from, const char *to, bool owerwrite);
+#define cp(from, to)	\
+({	\
+	int ___c = k_lib_cp(from, to);\
+	___c;	\
+})
 
-//check if file exists
-extern bool file_exists (char *filename);
+#ifdef __cplusplus
+}
+#endif
+#endif
+

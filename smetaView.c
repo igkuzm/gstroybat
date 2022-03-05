@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "cp.h"
+#include <gio/gio.h>
 
 char *search;
 
@@ -359,8 +359,9 @@ void gstroybat_smeta_print_button_pushed(GtkButton *button, gpointer user_data){
 	StroybatSmeta *smeta = g_object_get_data(G_OBJECT(button), "StroybatSmeta");
 	
 	if (smeta) {
-		remove("tmp.xlsx");
-		cp("Template.xlsx", "tmp.xlsx", 0);
+		GFile *template = g_file_new_for_path("Template.xlsx"); 
+		GFile *file = g_file_new_for_path("tmp.xlsx"); 
+		g_file_copy(template, file, G_FILE_COPY_OVERWRITE, NULL, NULL, NULL, NULL);
 		stroybat_smeta_create_xlsx(smeta, "tmp.xlsx");
 		openFile("tmp.xlsx");
 	} else {
