@@ -2,23 +2,22 @@
  * File              : smetaView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 14.02.2022
+ * Last Modified Date: 05.03.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "smetaView.h"
 #include "itemsView.h"
 #include "openfile.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "cp.h"
 
 char *search;
 
 GtkWidget *smetaTable;
-GtkWidget *printButton;	
-GtkWidget *stroybatRemoveButton;
-
 
 enum {
   COLUMN_TITLE = 0,
@@ -81,7 +80,15 @@ GtkListStore *gstroybat_smeta_table_model_new(){
 	return store;
 }
 
+gboolean gstroybat_smeta_table_model_free(GtkTreeModel* model, GtkTreePath* path, GtkTreeIter* iter, gpointer data) {
+	StroybatSmeta *smeta;
+	gtk_tree_model_get(model, iter, SMETA_POINTER, &smeta, -1);	
+	free(smeta);
+	return false;
+}
+
 void gstroybat_smeta_table_model_update(GtkListStore *store, const char *search){
+	gtk_tree_model_foreach (GTK_TREE_MODEL(store), gstroybat_smeta_table_model_free, NULL);
 	gtk_list_store_clear(store);
 	stroybat_get_all_smeta(search, store, gtroybat_fill_table_with_smeta);
 }
@@ -157,8 +164,16 @@ void gstroybat_smeta_table_cell_edited_callback (GtkCellRendererText *cell, gcha
 					sprintf(buffer, "%d-%d-%d 00:00:00", tm.tm_year, tm.tm_mon, tm.tm_mday);
 					//g_print("DATE: %s\n", buffer);
 
-					strptime(buffer, "%Y-%m-%d %H:%M:%S", &tm);
+					//strptime(buffer, "%Y-%m-%d %H:%M:%S", &tm);
 					//g_print("DATE: %d-%d-%d\n", tm.tm_year, tm.tm_mon, tm.tm_mday);
+					tm.tm_year -= 1900; //struct tm year starts from 1900
+					tm.tm_mon -= 1; //struct tm mount start with 0 for January
+					tm.tm_isdst = 0; //should not use summer time flag 
+
+					//dont forget to add zero to time - or we will have bugs!
+					tm.tm_sec = 0; 
+					tm.tm_min = 0;
+					tm.tm_hour = 0;	
 					
 					time_t secons = mktime(&tm);
 					int err = stroybat_set_smeta_date(smeta->uuid, secons);
@@ -237,6 +252,12 @@ void gstroybat_smeta_table_view_row_activated(GtkTreeView *treeview, GtkTreePath
 
 	GtkTreeModel *model = gtk_tree_view_get_model(treeview);
 	GtkTreeIter iter;
+	
+	GtkWidget* mainWindow = g_object_get_data(G_OBJECT(treeview), "mainWindow");
+	GtkWidget* addServiceButton = g_object_get_data(G_OBJECT(mainWindow), "addServiceButton");
+	GtkWidget* addProductButton = g_object_get_data(G_OBJECT(mainWindow), "addProductButton");
+	GtkWidget* printButton = g_object_get_data(G_OBJECT(mainWindow), "printButton");
+	GtkWidget* stroybatRemoveButton = g_object_get_data(G_OBJECT(mainWindow), "stroybatRemoveButton");
 
 	if (gtk_tree_model_get_iter(model, &iter, path)) {
 		StroybatSmeta *smeta;
@@ -312,6 +333,7 @@ void gstroybat_smeta_remove_button_pushed(GtkButton *button, gpointer user_data)
 	StroybatSmeta *smeta = g_object_get_data(G_OBJECT(button), "StroybatSmeta");
 	
 	if (smeta) {
+		GtkWidget* mainWindow = g_object_get_data(G_OBJECT(button), "mainWindow");
 		gstroybat_ask_to_remove_smeta(store, smeta, mainWindow);
 	} else {
 		g_print("Error to get smeta data!\n");
@@ -337,6 +359,8 @@ void gstroybat_smeta_print_button_pushed(GtkButton *button, gpointer user_data){
 	StroybatSmeta *smeta = g_object_get_data(G_OBJECT(button), "StroybatSmeta");
 	
 	if (smeta) {
+		remove("tmp.xlsx");
+		cp("Template.xlsx", "tmp.xlsx", 0);
 		stroybat_smeta_create_xlsx(smeta, "tmp.xlsx");
 		openFile("tmp.xlsx");
 	} else {
@@ -363,7 +387,7 @@ void gstroybat_smeta_search_changed(GtkWidget *widget, gpointer user_data){
 }
 
 
-GtkWidget *gstroybat_smeta_table_view_header(GtkListStore *store){
+GtkWidget *gstroybat_smeta_table_view_header(GtkListStore *store, GtkWidget* mainWindow){
 	GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 	
 	GtkWidget *search = gtk_entry_new();
@@ -377,12 +401,14 @@ GtkWidget *gstroybat_smeta_table_view_header(GtkListStore *store){
 	g_signal_connect(plusButton, "clicked", (GCallback)gstroybat_smeta_add_button_pushed, store);
 	gtk_box_append(GTK_BOX(header), plusButton);	
 	
-	stroybatRemoveButton = gtk_button_new_with_label("-");
+	GtkWidget* stroybatRemoveButton = gtk_button_new_with_label("-");
+	g_object_set_data(G_OBJECT(mainWindow), "stroybatRemoveButton", stroybatRemoveButton);
 	g_signal_connect(stroybatRemoveButton, "clicked", (GCallback)gstroybat_smeta_remove_button_pushed, store);
 	gtk_widget_set_sensitive(stroybatRemoveButton, false);
 	gtk_box_append(GTK_BOX(header), stroybatRemoveButton);	
 
-	printButton = gtk_button_new_with_label("🖨 Рапечатать");
+	GtkWidget* printButton = gtk_button_new_with_label("🖨 Рапечатать");
+	g_object_set_data(G_OBJECT(mainWindow), "printButton", printButton);
 	g_signal_connect(printButton, "clicked", (GCallback)gstroybat_smeta_print_button_pushed, store);
 	gtk_widget_set_sensitive(printButton, false);
 	gtk_box_append(GTK_BOX(header), printButton);		
@@ -390,16 +416,17 @@ GtkWidget *gstroybat_smeta_table_view_header(GtkListStore *store){
 	return header;
 }
 
-GtkWidget *gstroybat_smeta_table_view_new(){
+GtkWidget *gstroybat_smeta_table_view_new(GtkWidget* mainWindow){
 	
 	GtkListStore *store = gstroybat_smeta_table_model_new();
 	
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
 	
-	GtkWidget *header_title = gtk_label_new("Список услуг и материалов");
-	gtk_box_append(GTK_BOX(box), header_title);	
+	//GtkWidget *header_title = gtk_label_new("Список смет");
+	//gtk_box_append(GTK_BOX(box), gtk_label_new(""));	
+	//gtk_box_append(GTK_BOX(box), header_title);	
 
-	gtk_box_append(GTK_BOX(box), gstroybat_smeta_table_view_header(store));	
+	gtk_box_append(GTK_BOX(box), gstroybat_smeta_table_view_header(store, mainWindow));	
 
 	GtkWidget *window = gtk_scrolled_window_new();
 	gtk_widget_set_size_request (GTK_WIDGET(window), 900, 200);	
@@ -411,7 +438,7 @@ GtkWidget *gstroybat_smeta_table_view_new(){
 	smetaTable = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
 	gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(smetaTable), true);
 	g_signal_connect(smetaTable, "row-activated", (GCallback) gstroybat_smeta_table_view_row_activated, store);
-	
+	g_object_set_data(G_OBJECT(smetaTable), "mainWindow", mainWindow);
 
 	const char *column_titles[] = {"Наименование", "Дата", "Сумма", "Заказчик", "Подрядчик", "Объект", "Работы", "Основание"};
 

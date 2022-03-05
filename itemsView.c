@@ -2,7 +2,7 @@
  * File              : itemsView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 13.02.2022
+ * Last Modified Date: 05.03.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "itemsView.h"
@@ -64,8 +64,16 @@ int gtroybat_fill_table_with_items(StroybatItem *item, void *data, char *error){
 	return 0;
 }
 
+gboolean gstroybat_items_table_model_free(GtkTreeModel* model, GtkTreePath* path, GtkTreeIter* iter, gpointer data) {
+	StroybatItem *item;
+	gtk_tree_model_get(model, iter, ITEM_POINTER, &item, -1);	
+	free(item);
+	return false;
+}
+
 void gstroybat_items_table_model_update(StroybatSmeta *smeta){
 	selectedSmeta = smeta;
+	gtk_tree_model_foreach (GTK_TREE_MODEL(itemsViewStore), gstroybat_items_table_model_free, NULL);
 	gtk_list_store_clear(itemsViewStore);
 
 	stroybat_get_items_for_smeta(smeta->uuid, itemsViewStore, gtroybat_fill_table_with_items);
@@ -240,44 +248,50 @@ void gstroybat_item_remove_button_pushed(GtkButton *button, gpointer user_data){
 	
 	if (item) {
 		g_print("Remove Item: %s\n", item->title);
+		GtkWidget* mainWindow = g_object_get_data(G_OBJECT(button), "mainWindow");
 		gstroybat_ask_to_remove_item(store, item, mainWindow);
 	} else {
 		g_print("Error to get item data!\n");
 	}
 }
 
-GtkWidget *gstroybat_items_table_view_header(GtkListStore *store){
+GtkWidget *gstroybat_items_table_view_header(GtkListStore *store, GtkWidget* mainWindow){
 	GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
+	
+	GtkWidget *header_title = gtk_label_new("Услуги и материалы");
+	gtk_widget_set_hexpand(header_title, TRUE);
+	gtk_box_append(GTK_BOX(header), header_title);	
 
-	addServiceButton = gtk_button_new_with_label("+ услуга");
+	GtkWidget* addServiceButton = gtk_button_new_with_label("+ услуга");
 	g_signal_connect(addServiceButton, "clicked", (GCallback)gstroybat_items_add_button_pushed, store);
 	g_object_set_data(G_OBJECT(addServiceButton), "DATABASE", GINT_TO_POINTER(0));
+	g_object_set_data(G_OBJECT(mainWindow), "addServiceButton", addServiceButton);
 	gtk_box_append(GTK_BOX(header), addServiceButton);	
 
-	addProductButton = gtk_button_new_with_label("+ товар");
+	GtkWidget* addProductButton = gtk_button_new_with_label("+ товар");
 	g_signal_connect(addProductButton, "clicked", (GCallback)gstroybat_items_add_button_pushed, store);
 	g_object_set_data(G_OBJECT(addProductButton), "DATABASE", GINT_TO_POINTER(-1));
+	g_object_set_data(G_OBJECT(mainWindow), "addProductButton", addProductButton);
 	gtk_box_append(GTK_BOX(header), addProductButton);		
 	
 	itemRemoveButton = gtk_button_new_with_label("-");
 	gtk_widget_set_sensitive(itemRemoveButton, false);
+	g_object_set_data(G_OBJECT(itemRemoveButton), "mainWindow", mainWindow);
+	
 	g_signal_connect(itemRemoveButton, "clicked", (GCallback)gstroybat_item_remove_button_pushed, store);
 	gtk_box_append(GTK_BOX(header), itemRemoveButton);	
 
 	return header;
 }
 
-GtkWidget *gstroybat_items_table_view_new(){
+GtkWidget *gstroybat_items_table_view_new(GtkWidget* mainWindow){
 	
 	//create new Store
 	itemsViewStore = gstroybat_items_table_model_new();
 	
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
 	
-	GtkWidget *header_title = gtk_label_new("Список услуг и материалов");
-	gtk_box_append(GTK_BOX(box), header_title);	
-
-	gtk_box_append(GTK_BOX(box), gstroybat_items_table_view_header(itemsViewStore));	
+	gtk_box_append(GTK_BOX(box), gstroybat_items_table_view_header(itemsViewStore, mainWindow));	
 
 	GtkWidget *window = gtk_scrolled_window_new();
 	gtk_widget_set_size_request (GTK_WIDGET(window), 900, 200);	
