@@ -2,7 +2,7 @@
  * File              : itemsListView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 12.02.2022
- * Last Modified Date: 12.02.2022
+ * Last Modified Date: 06.03.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -63,7 +63,15 @@ int gtroybat_fill_items_list_with_items(StroybatItem *item, void *data, char *er
 	return 0;
 }
 
+gboolean gstroybat_items_list_view_store_free(GtkTreeModel* model, GtkTreePath* path, GtkTreeIter* iter, gpointer data) {
+	StroybatItem *item;
+	gtk_tree_model_get(model, iter, ITEM_POINTER, &item, -1);	
+	free(item);
+	return false;
+}
+
 void gstroybat_items_list_view_store_update(const char *search, GtkTreeStore *store, int DATABASE){
+	gtk_tree_model_foreach (GTK_TREE_MODEL(store), gstroybat_items_list_view_store_free, NULL);
 	gtk_tree_store_clear(store);
 	if (search) {
 		stroybat_get_all_items_from_database(DATABASE, search, NULL, gtroybat_fill_items_list_with_items);

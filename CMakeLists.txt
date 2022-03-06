@@ -64,7 +64,7 @@ if (APPLE)
 	INSTALL(CODE "
 		include(BundleUtilities)
 		fixup_bundle(\"${APP}\" \"\" \"${DIRS}\")
-	" COMPONENT Runtime)
+		" COMPONENT Runtime)
 endif()
 
 if (WIN32)
