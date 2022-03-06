@@ -73,7 +73,8 @@ if (WIN32)
 	file(MAKE_DIRECTORY ${INSTALL_DIR})
 	
 	#Copy DLLs
-	file(GLOB files "${GTK_LIBRARY_DIRS}/../bin/*.dll")
+	#file(GLOB files "${GTK_LIBRARY_DIRS}/../bin/*.dll")
+	file(GLOB files "${CMAKE_BINARY_DIR}/../winlibs/*")	
 	foreach(_file ${files})
 			file(INSTALL
 				DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}"

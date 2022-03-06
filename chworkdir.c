@@ -1,10 +1,11 @@
-/**chworkdir.h
+/**
  * File              : chworkdir.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
- * Date              : 04.09.2021
- * Last Modified Date: 05.03.2022
+ * Date              : 21.02.2022
+ * Last Modified Date: 06.03.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
+
 #include "chworkdir.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -165,3 +166,4 @@ int changeWorkDir(char *argv[]){
 	printf("Workdir changed to:%s\n", workDir);
 	return 0;
 }
+
