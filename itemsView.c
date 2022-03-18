@@ -2,11 +2,11 @@
  * File              : itemsView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 06.03.2022
+ * Last Modified Date: 18.03.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
-#include "itemsView.h"
-#include "itemsListView.h"
+#include "gstroybat.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -213,7 +213,7 @@ void gstroybat_ask_to_remove_item_responce(GtkDialog *dialog, gint arg1, gpointe
 		GtkListStore *store = user_data;
 		StroybatItem *item = g_object_get_data(G_OBJECT(dialog), "StroybatItem");
 		
-		int err = stroybat_smeta_remove_item(selectedSmeta->uuid, item->uuid);
+		int err = stroybat_smeta_remove_item(item->uuid);
 		if (err) {
 			g_print("Error to remove Item! Err: %d\n", err);
 		}
@@ -255,7 +255,7 @@ void gstroybat_item_remove_button_pushed(GtkButton *button, gpointer user_data){
 	}
 }
 
-GtkWidget *gstroybat_items_table_view_header(GtkListStore *store, GtkWidget* mainWindow){
+GtkWidget *gstroybat_items_table_view_header(GtkListStore *store, GtkWidget *mainWindow){
 	GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 	
 	GtkWidget *header_title = gtk_label_new("Услуги и материалы");
@@ -284,7 +284,7 @@ GtkWidget *gstroybat_items_table_view_header(GtkListStore *store, GtkWidget* mai
 	return header;
 }
 
-GtkWidget *gstroybat_items_table_view_new(GtkWidget* mainWindow){
+GtkWidget *gstroybat_items_table_view_new(GtkWidget *mainWindow){
 	
 	//create new Store
 	itemsViewStore = gstroybat_items_table_model_new();

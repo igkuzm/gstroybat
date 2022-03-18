@@ -2,12 +2,11 @@
  * File              : smetaView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 06.03.2022
+ * Last Modified Date: 18.03.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
-#include "smetaView.h"
-#include "itemsView.h"
-#include "openfile.h"
+#include "gstroybat.h"
+#include "stroybat/klib/openfile.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -254,6 +253,7 @@ void gstroybat_smeta_table_view_row_activated(GtkTreeView *treeview, GtkTreePath
 	GtkTreeIter iter;
 	
 	GtkWidget* mainWindow = g_object_get_data(G_OBJECT(treeview), "mainWindow");
+
 	GtkWidget* addServiceButton = g_object_get_data(G_OBJECT(mainWindow), "addServiceButton");
 	GtkWidget* addProductButton = g_object_get_data(G_OBJECT(mainWindow), "addProductButton");
 	GtkWidget* printButton = g_object_get_data(G_OBJECT(mainWindow), "printButton");
@@ -295,7 +295,7 @@ void gstroybat_smeta_table_view_row_activated(GtkTreeView *treeview, GtkTreePath
 }
 
 void gstroybat_ask_to_remove_smeta_responce(GtkDialog *dialog, gint arg1, gpointer user_data){
-	if (arg1 == 1) {
+	if (arg1 == GTK_RESPONSE_ACCEPT) {
 		g_print("Remove smeta button pushed\n");
 		GtkListStore *store = user_data;
 		StroybatSmeta *smeta = g_object_get_data(G_OBJECT(dialog), "StroybatSmeta");
@@ -311,18 +311,25 @@ void gstroybat_ask_to_remove_smeta_responce(GtkDialog *dialog, gint arg1, gpoint
 }
 
 void gstroybat_ask_to_remove_smeta(GtkListStore *store, StroybatSmeta *smeta, GtkWidget *window) {
-	GtkWidget *dialog;
-	dialog = gtk_message_dialog_new(GTK_WINDOW(window),
-			GTK_DIALOG_MODAL,
-			GTK_MESSAGE_QUESTION,
-			GTK_BUTTONS_NONE,
-			"Удалить смету %s?", smeta->title);
-	gtk_window_set_title(GTK_WINDOW(dialog), "Удалить?");
-	gtk_dialog_add_button(GTK_DIALOG(dialog), "УДАЛИТЬ", 1);
-	gtk_dialog_add_button(GTK_DIALOG(dialog), "Отмена", 0);
-	gtk_dialog_set_default_response(GTK_DIALOG(dialog), 0);
+	GtkWidget *dialog = gtk_dialog_new_with_buttons ("Удалить?",
+                                       GTK_WINDOW(window),
+                                       /*GTK_DIALOG_MODAL|GTK_DIALOG_USE_HEADER_BAR,*/
+                                       GTK_DIALOG_MODAL,
+                                       ("УДАЛИТЬ"),
+                                       GTK_RESPONSE_ACCEPT,
+                                       ("Отмена"),
+                                       GTK_RESPONSE_REJECT,
+                                       NULL);
+	gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_REJECT);
+	GtkWidget* content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+	char message[BUFSIZ];
+	sprintf(message, "Удалить смету: %s?", smeta->title);
+	gtk_box_append (GTK_BOX (content_area), gtk_label_new (message));
+	char text[] = "При удалении сметы, удаляются все данные по данной смете (материалы, услуги)\n"
+				  "Это действие необратимо!";
+	gtk_box_append (GTK_BOX (content_area), gtk_label_new (text));
 	g_object_set_data(G_OBJECT(dialog), "StroybatSmeta", smeta);
-	g_signal_connect (dialog, "response", G_CALLBACK (gstroybat_ask_to_remove_smeta_responce), store);
+	g_signal_connect (dialog, "response", G_CALLBACK (gstroybat_ask_to_remove_smeta_responce), store);	
 	gtk_widget_show(dialog);
 }
 
@@ -363,7 +370,7 @@ void gstroybat_smeta_print_button_pushed(GtkButton *button, gpointer user_data){
 		GFile *file = g_file_new_for_path("tmp.xlsx"); 
 		g_file_copy(template, file, G_FILE_COPY_OVERWRITE, NULL, NULL, NULL, NULL);
 		stroybat_smeta_create_xlsx(smeta, "tmp.xlsx");
-		openFile("tmp.xlsx");
+		openfile("tmp.xlsx");
 	} else {
 		g_print("Error to get smeta data!\n");
 	}
@@ -388,7 +395,7 @@ void gstroybat_smeta_search_changed(GtkWidget *widget, gpointer user_data){
 }
 
 
-GtkWidget *gstroybat_smeta_table_view_header(GtkListStore *store, GtkWidget* mainWindow){
+GtkWidget *gstroybat_smeta_table_view_header(GtkListStore *store, GtkWidget *mainWindow){
 	GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 	
 	GtkWidget *search = gtk_entry_new();
@@ -413,11 +420,12 @@ GtkWidget *gstroybat_smeta_table_view_header(GtkListStore *store, GtkWidget* mai
 	g_signal_connect(printButton, "clicked", (GCallback)gstroybat_smeta_print_button_pushed, store);
 	gtk_widget_set_sensitive(printButton, false);
 	gtk_box_append(GTK_BOX(header), printButton);		
+	
 
 	return header;
 }
 
-GtkWidget *gstroybat_smeta_table_view_new(GtkWidget* mainWindow){
+GtkWidget *gstroybat_smeta_table_view_new(GtkWidget *mainWindow){
 	
 	GtkListStore *store = gstroybat_smeta_table_model_new();
 	

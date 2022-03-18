@@ -2,11 +2,11 @@
  * File              : itemsListView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 12.02.2022
- * Last Modified Date: 06.03.2022
+ * Last Modified Date: 14.03.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
-#include "itemsListView.h"
+#include "gstroybat.h"
 #include <stdio.h>
 
 GtkTreeStore *itemsListViewStore;

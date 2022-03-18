@@ -32,10 +32,8 @@ add_executable(${TARGET}
 	mainWindow.c 
 	smetaView.c 
 	itemsView.c 
-	chworkdir.c 
-	openfile.c
-	chworkdir.c
 	itemsListView.c 
+	mainMenu.c
 	${RESOURCE_FILES}
 )
 target_link_libraries(${TARGET} PRIVATE ${GTK_LIBRARIES} stroybat)
