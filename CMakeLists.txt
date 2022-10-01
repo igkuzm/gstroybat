@@ -17,12 +17,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK REQUIRED gtk4)
 
-add_subdirectory(stroybat) #library
+#######
+set(STROYBAT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/stroybat)
+add_subdirectory(${STROYBAT_SOURCE_DIR})
+#######
 
 # Files to copy to bundle
 set(RESOURCE_FILES 
 	stroybat/stroybat.db 
-	stroybat/stroybat_data.db 
 	stroybat/Template.xlsx
 )
 
@@ -34,6 +36,7 @@ add_executable(${TARGET}
 	itemsView.c 
 	itemsListView.c 
 	mainMenu.c
+	YDConnect.cc
 	${RESOURCE_FILES}
 )
 target_link_libraries(${TARGET} PRIVATE ${GTK_LIBRARIES} stroybat)
@@ -47,6 +50,7 @@ target_include_directories(${TARGET} PRIVATE ${GTK_INCLUDE_DIRS})
 target_link_directories(${TARGET} PRIVATE ${GTK_LIBRARY_DIRS} ${CMAKE_PREFIX_PATH}/lib)
 
 if (APPLE)
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS}  -framework WebKit -ObjC -lstdc++")
 	set_target_properties(${TARGET} PROPERTIES
 		MACOSX_BUNDLE TRUE
 		MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist

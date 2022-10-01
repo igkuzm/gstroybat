@@ -2,15 +2,16 @@
  * File              : itemsListView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 12.02.2022
- * Last Modified Date: 14.03.2022
+ * Last Modified Date: 01.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
 #include "gstroybat.h"
 #include <stdio.h>
+#include <stdbool.h>
 
 GtkTreeStore *itemsListViewStore;
-int DATABASE;
+int datatype;
 
 enum {
   COLUMN_TITLE,
@@ -57,7 +58,7 @@ int gtroybat_fill_items_list_with_items(StroybatItem *item, void *data, char *er
 	gstroybat_add_item_to_tree_store(itemsListViewStore, item, &iter, parent);
 
 	if (item->id > 0) {
-		stroybat_get_all_items_from_database_for_parent(DATABASE, item->id, &iter, gtroybat_fill_items_list_with_items);
+		stroybat_data_get_for_parent(database, datatype, item->id, &iter, gtroybat_fill_items_list_with_items);
 	}
 
 	return 0;
@@ -70,14 +71,15 @@ gboolean gstroybat_items_list_view_store_free(GtkTreeModel* model, GtkTreePath* 
 	return false;
 }
 
-void gstroybat_items_list_view_store_update(const char *search, GtkTreeStore *store, int DATABASE){
+void gstroybat_items_list_view_store_update(const char *search, GtkTreeStore *store, int datatype){
 	gtk_tree_model_foreach (GTK_TREE_MODEL(store), gstroybat_items_list_view_store_free, NULL);
 	gtk_tree_store_clear(store);
+	
 	if (search) {
-		stroybat_get_all_items_from_database(DATABASE, search, NULL, gtroybat_fill_items_list_with_items);
+		stroybat_data_get(database, datatype, search, NULL, gtroybat_fill_items_list_with_items);
 		
 	} else {
-		stroybat_get_all_items_from_database_for_parent(DATABASE, 0, NULL, gtroybat_fill_items_list_with_items);
+		stroybat_data_get_for_parent(database, datatype, 0, NULL, gtroybat_fill_items_list_with_items);
 	}
 }
 
@@ -96,9 +98,10 @@ void gstroybat_items_list_tree_view_row_activated(GtkTreeView *treeview, GtkTree
 			} else {
 				StroybatSmeta *smeta = g_object_get_data(G_OBJECT(treeview), "StroybatSmeta");
 
-				StroybatItem *newItem = stroybat_item_new(NULL, item->title, item->unit, item->price, 1, DATABASE);
+				StroybatItem *newItem = stroybat_item_new(NULL, item->title, item->unit, item->price, 1, datatype);
 
-				stroybat_smeta_add_item(smeta->uuid, newItem);
+				
+				stroybat_smeta_add_item(database, smeta->uuid, newItem);
 				gstroybat_items_table_model_update(smeta);
 			}
 
@@ -116,18 +119,18 @@ void gstroybat_smeta_items_list_changed(GtkWidget *widget, gpointer user_data){
 	g_print("Search has changed to: %s\n", search);
 
 	if (strlen(search) > 2) {
-		gstroybat_items_list_view_store_update(search, store, DATABASE);	
+		gstroybat_items_list_view_store_update(search, store, datatype);	
 	}
 
 	if (strlen(search) == 0) {
 		search = NULL;
-		gstroybat_items_list_view_store_update(search, store, DATABASE);	
+		gstroybat_items_list_view_store_update(search, store, datatype);	
 	}
 }
 
 
-void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int _DATABASE){
-	DATABASE = _DATABASE;
+void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int _datatype){
+	datatype = _datatype;
 
 	itemsListViewStore = gstroybat_items_list_table_model_new();
 
@@ -135,10 +138,10 @@ void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int _DA
 	gtk_window_set_modal(GTK_WINDOW(win), true);
 
 	char *title;
-	if (DATABASE == 0) {
+	if (datatype == 0) {
 		title = "Список услуг";	
 	}
-	if (DATABASE == -1) {
+	if (datatype == -1) {
 		title = "Список материалов";	
 	}	
 
@@ -165,7 +168,7 @@ void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int _DA
 	g_signal_connect(treeView, "row-activated", (GCallback) gstroybat_items_list_tree_view_row_activated, store);
 	g_object_set_data(G_OBJECT(treeView), "itemsViewStore", store);
 	g_object_set_data(G_OBJECT(treeView), "StroybatSmeta", smeta);
-	g_object_set_data(G_OBJECT(treeView), "DATABASE", GINT_TO_POINTER(_DATABASE));
+	g_object_set_data(G_OBJECT(treeView), "DATABASE", GINT_TO_POINTER(_datatype));
 
 	const char *column_titles[] = {"Наименование", "Ед. изм.", "Цена"};
 
@@ -194,7 +197,7 @@ void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int _DA
 
 	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolledWindow), treeView);
 
-	gstroybat_items_list_view_store_update(NULL, itemsListViewStore, DATABASE);
+	gstroybat_items_list_view_store_update(NULL, itemsListViewStore, datatype);
 
 	gtk_widget_show(win);
 }

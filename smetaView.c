@@ -2,11 +2,10 @@
  * File              : smetaView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 18.03.2022
+ * Last Modified Date: 01.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
-#include "stroybat/klib/openfile.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,12 +37,13 @@ void gstroybat_add_smeta_to_store(GtkListStore *store, StroybatSmeta *smeta){
 	//15.06.2009
 	strftime(date, 32, "%d.%m.%Y", tm);  
 
+	
 	GtkTreeIter iter;
 	gtk_list_store_append(store, &iter);
 	gtk_list_store_set(store, &iter, 
 				COLUMN_TITLE, smeta->title, 
 				COLUMN_DATE, date, 
-				COLUMN_TOTAL_PRICE, stroybat_smeta_total_price(smeta->uuid), 
+				COLUMN_TOTAL_PRICE, stroybat_smeta_total_price(database, smeta->uuid), 
 				COLUMN_ZAKAZCHIK, smeta->zakazchik, 
 				COLUMN_PODRIADCHIK, smeta->podriadchik, 
 				COLUMN_OBIEKT, smeta->obiekt, 
@@ -89,7 +89,8 @@ gboolean gstroybat_smeta_table_model_free(GtkTreeModel* model, GtkTreePath* path
 void gstroybat_smeta_table_model_update(GtkListStore *store, const char *search){
 	gtk_tree_model_foreach (GTK_TREE_MODEL(store), gstroybat_smeta_table_model_free, NULL);
 	gtk_list_store_clear(store);
-	stroybat_get_all_smeta(search, store, gtroybat_fill_table_with_smeta);
+	
+	stroybat_smeta_get_all(database, search, store, gtroybat_fill_table_with_smeta);
 }
 
 void gstroybat_smeta_table_cell_edited_callback (GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer user_data){
@@ -136,7 +137,7 @@ void gstroybat_smeta_table_cell_edited_callback (GtkCellRendererText *cell, gcha
 		case COLUMN_TITLE:
 			{
 				g_print("Set Smeta Title to: %s\n", new_text);
-				int err = stroybat_set_smeta_title(smeta->uuid, new_text);
+				int err = stroybat_smeta_set_value_for_key(database, smeta->uuid, new_text, "title");
 				if (err){
 					g_print("Error to change smeta title! Err: %d\n", err);
 				} else {
@@ -175,7 +176,9 @@ void gstroybat_smeta_table_cell_edited_callback (GtkCellRendererText *cell, gcha
 					tm.tm_hour = 0;	
 					
 					time_t secons = mktime(&tm);
-					int err = stroybat_set_smeta_date(smeta->uuid, secons);
+					char date[64];
+					sprintf(date, "%ld", secons);
+					int err = stroybat_smeta_set_value_for_key(database, smeta->uuid, date, "date");
 					if (err){
 						g_print("Error to change smeta date! Err: %d\n", err);
 					} else {
@@ -190,7 +193,7 @@ void gstroybat_smeta_table_cell_edited_callback (GtkCellRendererText *cell, gcha
 		case COLUMN_ZAKAZCHIK:
 			{
 				g_print("Set Smeta Zakazchik to: %s\n", new_text);
-				int err = stroybat_set_smeta_zakazchik(smeta->uuid, new_text);
+				int err = stroybat_smeta_set_value_for_key(database, smeta->uuid, new_text, "zakazchik");
 				if (err){
 					g_print("Error to change smeta zakazchik! Err: %d\n", err);
 				} else {
@@ -201,7 +204,7 @@ void gstroybat_smeta_table_cell_edited_callback (GtkCellRendererText *cell, gcha
 		case COLUMN_PODRIADCHIK:
 			{
 				g_print("Set Smeta Podriadchik to: %s\n", new_text);
-				int err = stroybat_set_smeta_podriadchik(smeta->uuid, new_text);
+				int err = stroybat_smeta_set_value_for_key(database, smeta->uuid, new_text, "podriadchik");
 				if (err){
 					g_print("Error to change smeta podriadchik! Err: %d\n", err);
 				} else {
@@ -212,7 +215,7 @@ void gstroybat_smeta_table_cell_edited_callback (GtkCellRendererText *cell, gcha
 		case COLUMN_OBIEKT:
 			{
 				g_print("Set Smeta Obiekt to: %s\n", new_text);
-				int err = stroybat_set_smeta_obiekt(smeta->uuid, new_text);
+				int err = stroybat_smeta_set_value_for_key(database, smeta->uuid, new_text, "obiekt");
 				if (err){
 					g_print("Error to change smeta obiekt! Err: %d\n", err);
 				} else {
@@ -223,7 +226,7 @@ void gstroybat_smeta_table_cell_edited_callback (GtkCellRendererText *cell, gcha
 		case COLUMN_RABOTI:
 			{
 				g_print("Set Smeta Raboti to: %s\n", new_text);
-				int err = stroybat_set_smeta_raboti(smeta->uuid, new_text);
+				int err = stroybat_smeta_set_value_for_key(database, smeta->uuid, new_text, "raboti");
 				if (err){
 					g_print("Error to change smeta raboti! Err: %d\n", err);
 				} else {
@@ -234,7 +237,7 @@ void gstroybat_smeta_table_cell_edited_callback (GtkCellRendererText *cell, gcha
 		case COLUMN_OSNOVANIYE:
 			{
 				g_print("Set Smeta Osnovaniye to: %s\n", new_text);
-				int err = stroybat_set_smeta_osnovaniye(smeta->uuid, new_text);
+				int err = stroybat_smeta_set_value_for_key(database, smeta->uuid, new_text, "osnovaniye");
 				if (err){
 					g_print("Error to change smeta osnovaniye! Err: %d\n", err);
 				} else {
@@ -299,7 +302,9 @@ void gstroybat_ask_to_remove_smeta_responce(GtkDialog *dialog, gint arg1, gpoint
 		g_print("Remove smeta button pushed\n");
 		GtkListStore *store = user_data;
 		StroybatSmeta *smeta = g_object_get_data(G_OBJECT(dialog), "StroybatSmeta");
-		int err = stroybat_smeta_remove_all(smeta->uuid);
+		
+		
+		int err = stroybat_smeta_remove_all(database, smeta->uuid);
 		if (err) {
 			g_print("Error to remove smeta! Err: %d\n", err);
 		}
@@ -351,7 +356,8 @@ void gstroybat_smeta_add_button_pushed(GtkButton *button, gpointer user_data){
 	g_print("Add button clicked\n");
 	
 	GtkListStore *store = user_data;
-	StroybatSmeta *smeta = stroybat_smeta_new();
+	
+	StroybatSmeta *smeta = stroybat_smeta_new(database);
 	if (smeta) {
 		gstroybat_add_smeta_to_store(store, smeta);
 	} else {
@@ -369,8 +375,10 @@ void gstroybat_smeta_print_button_pushed(GtkButton *button, gpointer user_data){
 		GFile *template = g_file_new_for_path("Template.xlsx"); 
 		GFile *file = g_file_new_for_path("tmp.xlsx"); 
 		g_file_copy(template, file, G_FILE_COPY_OVERWRITE, NULL, NULL, NULL, NULL);
-		stroybat_smeta_create_xlsx(smeta, "tmp.xlsx");
-		openfile("tmp.xlsx");
+		
+		stroybat_smeta_create_xlsx(database, smeta, "tmp.xlsx");
+		g_app_info_launch_default_for_uri("tmp.xlsx", NULL, NULL);
+		/*gtk_show_uri_on_window(NULL, "tmp.xlsx", 0, NULL);*/
 	} else {
 		g_print("Error to get smeta data!\n");
 	}
