@@ -2,7 +2,7 @@
  * File              : itemsView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 01.10.2022
+ * Last Modified Date: 02.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -226,6 +226,7 @@ void gstroybat_ask_to_remove_item_responce(GtkDialog *dialog, gint arg1, gpointe
 		}
 	}
 	gtk_window_destroy(GTK_WINDOW(dialog));
+	/*gtk_widget_destroy(GTK_WIDGET(dialog));*/
 }
 
 void gstroybat_ask_to_remove_item(GtkListStore *store, StroybatItem *item, GtkWidget *window) {
@@ -265,18 +266,21 @@ GtkWidget *gstroybat_items_table_view_header(GtkListStore *store, GtkWidget *mai
 	GtkWidget *header_title = gtk_label_new("Услуги и материалы");
 	gtk_widget_set_hexpand(header_title, TRUE);
 	gtk_box_append(GTK_BOX(header), header_title);	
+	/*gtk_container_add(GTK_CONTAINER(header), header_title);*/
 
 	GtkWidget* addServiceButton = gtk_button_new_with_label("+ услуга");
 	g_signal_connect(addServiceButton, "clicked", (GCallback)gstroybat_items_add_button_pushed, store);
 	g_object_set_data(G_OBJECT(addServiceButton), "DATABASE", GINT_TO_POINTER(0));
 	g_object_set_data(G_OBJECT(mainWindow), "addServiceButton", addServiceButton);
 	gtk_box_append(GTK_BOX(header), addServiceButton);	
+	/*gtk_container_add(GTK_CONTAINER(header), addServiceButton);*/
 
 	GtkWidget* addProductButton = gtk_button_new_with_label("+ товар");
 	g_signal_connect(addProductButton, "clicked", (GCallback)gstroybat_items_add_button_pushed, store);
 	g_object_set_data(G_OBJECT(addProductButton), "DATABASE", GINT_TO_POINTER(-1));
 	g_object_set_data(G_OBJECT(mainWindow), "addProductButton", addProductButton);
 	gtk_box_append(GTK_BOX(header), addProductButton);		
+	/*gtk_container_add(GTK_CONTAINER(header), addProductButton);*/
 	
 	itemRemoveButton = gtk_button_new_with_label("-");
 	gtk_widget_set_sensitive(itemRemoveButton, false);
@@ -284,6 +288,7 @@ GtkWidget *gstroybat_items_table_view_header(GtkListStore *store, GtkWidget *mai
 	
 	g_signal_connect(itemRemoveButton, "clicked", (GCallback)gstroybat_item_remove_button_pushed, store);
 	gtk_box_append(GTK_BOX(header), itemRemoveButton);	
+	/*gtk_container_add(GTK_CONTAINER(header), itemRemoveButton);*/
 
 	return header;
 }
@@ -296,11 +301,14 @@ GtkWidget *gstroybat_items_table_view_new(GtkWidget *mainWindow){
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
 	
 	gtk_box_append(GTK_BOX(box), gstroybat_items_table_view_header(itemsViewStore, mainWindow));	
+	/*gtk_container_add(GTK_CONTAINER(box), gstroybat_items_table_view_header(itemsViewStore, mainWindow));*/
 
 	GtkWidget *window = gtk_scrolled_window_new();
+	/*GtkWidget *window = gtk_scrolled_window_new(NULL, NULL);*/
 	gtk_widget_set_size_request (GTK_WIDGET(window), 900, 200);	
 	gtk_widget_set_vexpand(window, TRUE);
 	gtk_box_append(GTK_BOX(box), window);
+	/*gtk_container_add(GTK_CONTAINER(box), window);*/
 
 	GtkWidget *view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(itemsViewStore));
 	gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(view), true);
@@ -342,6 +350,7 @@ GtkWidget *gstroybat_items_table_view_new(GtkWidget *mainWindow){
 	}
 
 	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(window), view);
+	/*gtk_container_add(GTK_CONTAINER(window), view);*/
 	
 
 	return box;

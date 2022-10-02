@@ -2,7 +2,7 @@
  * File              : smetaView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 01.10.2022
+ * Last Modified Date: 02.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -12,6 +12,8 @@
 #include <string.h>
 #include <time.h>
 #include <gio/gio.h>
+#include "openfile.h"
+
 
 char *search;
 
@@ -313,6 +315,7 @@ void gstroybat_ask_to_remove_smeta_responce(GtkDialog *dialog, gint arg1, gpoint
 		}
 	}
 	gtk_window_destroy(GTK_WINDOW(dialog));
+	/*gtk_widget_destroy(GTK_WIDGET(dialog));*/
 }
 
 void gstroybat_ask_to_remove_smeta(GtkListStore *store, StroybatSmeta *smeta, GtkWidget *window) {
@@ -330,9 +333,11 @@ void gstroybat_ask_to_remove_smeta(GtkListStore *store, StroybatSmeta *smeta, Gt
 	char message[BUFSIZ];
 	sprintf(message, "Удалить смету: %s?", smeta->title);
 	gtk_box_append (GTK_BOX (content_area), gtk_label_new (message));
+	/*gtk_container_add(GTK_CONTAINER(content_area), gtk_label_new (message));*/
 	char text[] = "При удалении сметы, удаляются все данные по данной смете (материалы, услуги)\n"
 				  "Это действие необратимо!";
 	gtk_box_append (GTK_BOX (content_area), gtk_label_new (text));
+	/*gtk_container_add(GTK_CONTAINER(content_area), gtk_label_new (text));*/
 	g_object_set_data(G_OBJECT(dialog), "StroybatSmeta", smeta);
 	g_signal_connect (dialog, "response", G_CALLBACK (gstroybat_ask_to_remove_smeta_responce), store);	
 	gtk_widget_show(dialog);
@@ -377,8 +382,7 @@ void gstroybat_smeta_print_button_pushed(GtkButton *button, gpointer user_data){
 		g_file_copy(template, file, G_FILE_COPY_OVERWRITE, NULL, NULL, NULL, NULL);
 		
 		stroybat_smeta_create_xlsx(database, smeta, "tmp.xlsx");
-		g_app_info_launch_default_for_uri("tmp.xlsx", NULL, NULL);
-		/*gtk_show_uri_on_window(NULL, "tmp.xlsx", 0, NULL);*/
+		openfile("tmp.xlsx");
 	} else {
 		g_print("Error to get smeta data!\n");
 	}
@@ -411,24 +415,27 @@ GtkWidget *gstroybat_smeta_table_view_header(GtkListStore *store, GtkWidget *mai
 	g_signal_connect (search, "changed", G_CALLBACK (gstroybat_smeta_search_changed), store);
 	g_signal_connect (search, "insert-at-cursor", G_CALLBACK (gstroybat_smeta_search_changed), store);	
 	gtk_box_append(GTK_BOX(header), search);	
+	/*gtk_container_add(GTK_CONTAINER(header), search);*/
 	gtk_widget_set_hexpand(search, TRUE);
 	
 	GtkWidget *plusButton = gtk_button_new_with_label("+");
 	g_signal_connect(plusButton, "clicked", (GCallback)gstroybat_smeta_add_button_pushed, store);
 	gtk_box_append(GTK_BOX(header), plusButton);	
+	/*gtk_container_add(GTK_CONTAINER(header), plusButton);*/
 	
 	GtkWidget* stroybatRemoveButton = gtk_button_new_with_label("-");
 	g_object_set_data(G_OBJECT(mainWindow), "stroybatRemoveButton", stroybatRemoveButton);
 	g_signal_connect(stroybatRemoveButton, "clicked", (GCallback)gstroybat_smeta_remove_button_pushed, store);
 	gtk_widget_set_sensitive(stroybatRemoveButton, false);
 	gtk_box_append(GTK_BOX(header), stroybatRemoveButton);	
+	/*gtk_container_add(GTK_CONTAINER(header), stroybatRemoveButton);*/
 
 	GtkWidget* printButton = gtk_button_new_with_label("🖨 Рапечатать");
 	g_object_set_data(G_OBJECT(mainWindow), "printButton", printButton);
 	g_signal_connect(printButton, "clicked", (GCallback)gstroybat_smeta_print_button_pushed, store);
 	gtk_widget_set_sensitive(printButton, false);
 	gtk_box_append(GTK_BOX(header), printButton);		
-	
+	/*gtk_container_add(GTK_CONTAINER(header), printButton);*/
 
 	return header;
 }
@@ -444,11 +451,14 @@ GtkWidget *gstroybat_smeta_table_view_new(GtkWidget *mainWindow){
 	//gtk_box_append(GTK_BOX(box), header_title);	
 
 	gtk_box_append(GTK_BOX(box), gstroybat_smeta_table_view_header(store, mainWindow));	
+	/*gtk_container_add(GTK_CONTAINER(box), gstroybat_smeta_table_view_header(store, mainWindow));*/
 
 	GtkWidget *window = gtk_scrolled_window_new();
+	/*GtkWidget *window = gtk_scrolled_window_new(NULL, NULL);*/
 	gtk_widget_set_size_request (GTK_WIDGET(window), 900, 200);	
 	gtk_widget_set_vexpand(window, TRUE);
 	gtk_box_append(GTK_BOX(box), window);
+	/*gtk_container_add(GTK_CONTAINER(box), window);*/
 
 	gstroybat_smeta_table_model_update(store, NULL);
 
@@ -492,6 +502,7 @@ GtkWidget *gstroybat_smeta_table_view_new(GtkWidget *mainWindow){
 	}
 
 	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(window), smetaTable);
+	/*gtk_container_add(GTK_CONTAINER(window), smetaTable);*/
 	
 
 	return box;

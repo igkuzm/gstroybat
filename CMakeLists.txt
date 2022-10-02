@@ -15,6 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #Use pkg_config
 find_package(PkgConfig REQUIRED)
+#pkg_check_modules(GTK REQUIRED gtk+-3.0)
 pkg_check_modules(GTK REQUIRED gtk4)
 
 #######

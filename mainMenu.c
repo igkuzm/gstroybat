@@ -2,11 +2,16 @@
  * File              : mainMenu.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 15.03.2022
- * Last Modified Date: 15.03.2022
+ * Last Modified Date: 02.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
 #include "gstroybat.h"
+
+static void gstroybat_app_menu_yd_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+	YDShow();
+}
 
 static void gstroybat_app_menu_open_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
@@ -22,6 +27,7 @@ static void gstroybat_app_menu_quit_cb (GSimpleAction *action, GVariant *paramet
 const GActionEntry gstroybat_app_menu_app_actions[] = {
 	{ "quit", gstroybat_app_menu_quit_cb },
 	{ "open", gstroybat_app_menu_open_cb },
+	{ "yd", gstroybat_app_menu_yd_cb },
 	{ "preferences", gstroybat_app_menu_open_cb },
 	//{ "about", about_cb },
 };
@@ -72,6 +78,8 @@ void gstroybat_application_menu(GtkApplication *app){
 	static const gchar *open[] = {"<control>o", NULL}; 
 #endif
 	gtk_application_set_accels_for_action(app, "app.open", open);	
+	g_menu_append (filemenu, "Yandex Disk", "app.yd"); 
+	gtk_application_set_accels_for_action(app, "app.yd", NULL);	
 	g_object_unref (filemenu);
 
 	GMenu *edit = g_menu_new(); //edit item
