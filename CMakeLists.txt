@@ -21,7 +21,16 @@ pkg_check_modules(GTK REQUIRED gtk4)
 if(ANDROID)
 elseif(APPLE)
 elseif(WIN32)
+	#add WebView2
+	INCLUDE_DIRECTORIES(WebView2/include)
+	SET(ADDLIBS WebView2Loader)
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #64 bit	
+		SET(ADDDIRS ${CMAKE_SOURCE_DIR}/WebView2/x64)
+	elseif(CMAKE_SIZEOF_VOID_P EQUAL 4) #32 bit
+		SET(ADDDIRS ${CMAKE_SOURCE_DIR}/WebView2/x86)
+	endif()	
 else()
+	#add webkit2gtk
 	pkg_check_modules(WEBKITGTK REQUIRED webkit2gtk-4.0)
 	SET(ADDLIBS ${WEBKITGTK_LIBRARIES})
 	SET(ADDINCL ${WEBKITGTK_INCLUDE_DIRS})
@@ -97,6 +106,15 @@ if (WIN32)
 				FILES "${_file}"
 			)
 	endforeach()
+
+	#copy WebView2 libs
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #64 bit	
+		file(INSTALL DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}" FILES 
+			"${CMAKE_SOURCE_DIR}/WebView2/x64/WebView2Loader.dll")
+	elseif(CMAKE_SIZEOF_VOID_P EQUAL 4) #32 bit
+		file(INSTALL DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}" FILES
+			"${CMAKE_SOURCE_DIR}/WebView2/x86/WebView2Loader.dll")
+	endif()	
 
 	#Copy resources
 	foreach(_file ${RESOURCE_FILES})

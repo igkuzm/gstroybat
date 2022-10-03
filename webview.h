@@ -2,7 +2,7 @@
  * File              : webview.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 02.10.2022
- * Last Modified Date: 02.10.2022
+ * Last Modified Date: 03.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 /*
@@ -1305,7 +1305,7 @@ public:
               w->resize(hwnd);
               break;
             case WM_CLOSE:
-				ShowWindow(m_window, SW_HIDE);
+				ShowWindow(hwnd, SW_HIDE);
               /*DestroyWindow(hwnd);*/
               break;
             case WM_DESTROY:
