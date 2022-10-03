@@ -34,8 +34,11 @@ add_executable(${TARGET}
 	main.c 
 	mainWindow.c 
 	smetaView.c 
-	itemsView.c 
+	smetaEdit.c
+	materialsView.c 
+	servicesView.c 
 	itemsListView.c 
+	itemsTableModel.c
 	mainMenu.c
 	YDConnect.cc
 	${RESOURCE_FILES}

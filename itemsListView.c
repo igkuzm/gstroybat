@@ -2,7 +2,7 @@
  * File              : itemsListView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 12.02.2022
- * Last Modified Date: 02.10.2022
+ * Last Modified Date: 03.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -11,6 +11,7 @@
 #include <stdbool.h>
 
 GtkTreeStore *itemsListViewStore;
+GtkWidget *treeView;
 int datatype;
 
 enum {
@@ -102,7 +103,7 @@ void gstroybat_items_list_tree_view_row_activated(GtkTreeView *treeview, GtkTree
 
 				
 				stroybat_smeta_add_item(database, smeta->uuid, newItem);
-				gstroybat_items_table_model_update(smeta);
+				table_model_update(smeta);
 			}
 
 		} else {
@@ -140,7 +141,7 @@ void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int _da
 
 	char *title;
 	if (datatype == 0) {
-		title = "Список услуг";	
+		title = "Список работ";	
 	}
 	if (datatype == -1) {
 		title = "Список материалов";	
@@ -169,7 +170,9 @@ void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int _da
 	gtk_box_append(GTK_BOX(winbox), scrolledWindow);	
 	/*gtk_container_add(GTK_CONTAINER(winbox), scrolledWindow);*/
 
-	GtkWidget *treeView = gtk_tree_view_new();
+	treeView = gtk_tree_view_new();
+	//gtk_tree_view_set_search_entry(GTK_TREE_VIEW(treeView), search);
+	//gtk_tree_view_set_enable_search(GTK_TREE_VIEW(treeView), true);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(treeView), GTK_TREE_MODEL(itemsListViewStore));
 	g_signal_connect(treeView, "row-activated", (GCallback) gstroybat_items_list_tree_view_row_activated, store);
 	g_object_set_data(G_OBJECT(treeView), "itemsViewStore", store);

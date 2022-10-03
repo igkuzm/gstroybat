@@ -2,7 +2,7 @@
  * File              : mainMenu.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 15.03.2022
- * Last Modified Date: 02.10.2022
+ * Last Modified Date: 03.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -13,9 +13,14 @@ static void gstroybat_app_menu_yd_cb (GSimpleAction *action, GVariant *parameter
 	YDShow();
 }
 
-static void gstroybat_app_menu_open_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+static void gstroybat_app_menu_excel_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
-	g_print("OPEN\n");
+	make_excel();
+}
+
+static void gstroybat_app_menu_preferences_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+{
+
 }
 
 static void gstroybat_app_menu_quit_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
@@ -26,9 +31,9 @@ static void gstroybat_app_menu_quit_cb (GSimpleAction *action, GVariant *paramet
 
 const GActionEntry gstroybat_app_menu_app_actions[] = {
 	{ "quit", gstroybat_app_menu_quit_cb },
-	{ "open", gstroybat_app_menu_open_cb },
+	{ "excel", gstroybat_app_menu_excel_cb },
 	{ "yd", gstroybat_app_menu_yd_cb },
-	{ "preferences", gstroybat_app_menu_open_cb },
+	{ "preferences", gstroybat_app_menu_preferences_cb },
 	//{ "about", about_cb },
 };
 
@@ -71,15 +76,17 @@ void gstroybat_application_menu(GtkApplication *app){
 	//MENUBAR
 	GMenu *filemenu = g_menu_new(); //file item
 	g_menu_append_submenu(menuBar, "Файл", G_MENU_MODEL(filemenu)); 
-	g_menu_append (filemenu, "Открыть/Поиск", "app.open"); 
+
+	g_menu_append (filemenu, "Вывод в EXCEL", "app.excel"); //open excel doc 
 #ifdef __APPLE__
-	static const gchar *open[] = {"<meta>o", NULL}; 
+	static const gchar *excel[] = {"<meta>e", NULL}; 
 #else	
-	static const gchar *open[] = {"<control>o", NULL}; 
+	static const gchar *excel[] = {"<control>e", NULL}; 
 #endif
-	gtk_application_set_accels_for_action(app, "app.open", open);	
-	g_menu_append (filemenu, "Yandex Disk", "app.yd"); 
-	gtk_application_set_accels_for_action(app, "app.yd", NULL);	
+	gtk_application_set_accels_for_action(app, "app.excel", excel);	
+
+	g_menu_append (filemenu, "Yandex Disk", "app.yd"); //yandex disk
+	gtk_application_set_accels_for_action(app, "app.yd", NULL);	 
 	g_object_unref (filemenu);
 
 	GMenu *edit = g_menu_new(); //edit item

@@ -7,4 +7,5 @@ build
 .o
 Makefile
 .stash
+.cache
 qstroybat.pro.user

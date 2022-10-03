@@ -2,64 +2,78 @@
  * File              : mainWindow.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 02.10.2022
+ * Last Modified Date: 03.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
 #include "gstroybat.h"
 
 
-int YD_callback(void *user_data, char *token, time_t expires, char *reftoken, char *error){
-	GtkApplication *app = user_data;
-	if (token){
-		g_print("TOKEN: %s", token);
-		
-		GKeyFile *key_file = g_key_file_new ();
-		g_key_file_set_value(key_file, "stroybat", "YDToken", token);
-		g_key_file_save_to_file(key_file, "stroybat.ini", NULL);
-
-		GtkWidget *dialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, "Yandex Disk подключен");
-		gtk_widget_show(dialog);
-		
-		/*needToUpdate = true;*/
-		/*stroybat_init(database, token, NULL, init_database_callback);*/
-	}
-	return 0;
-}
-
 void gstroybat_application_on_activate (GtkApplication *app, gpointer user_data) {
 
+	//add main menu
 	gstroybat_application_menu(app);
 	
-	GtkWidget *window = gtk_application_window_new(app);
-	gtk_application_window_set_show_menubar (GTK_APPLICATION_WINDOW (window), TRUE);
-	g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(gstroybat_application_on_deactivate), app); //quit application on window destroy
+	//add main window
+	mainWindow = gtk_application_window_new(app);
+	gtk_application_window_set_show_menubar (GTK_APPLICATION_WINDOW (mainWindow), TRUE);
+	g_signal_connect(G_OBJECT(mainWindow), "destroy", G_CALLBACK(gstroybat_application_on_deactivate), app); //quit application on window destroy
+	gtk_window_set_title(GTK_WINDOW(mainWindow), "Список смет");
 
-	GtkWidget *splitter = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
-	gtk_window_set_child(GTK_WINDOW(window), splitter);
-	/*gtk_container_add(GTK_CONTAINER(window), splitter);*/
-	
-	/*GtkWidget *frame1 = gtk_frame_new (NULL);*/
-	/*GtkWidget *frame2 = gtk_frame_new (NULL);*/
-	/*gtk_frame_set_shadow_type (GTK_FRAME (frame1), GTK_SHADOW_IN);*/
-	/*gtk_frame_set_shadow_type (GTK_FRAME (frame2), GTK_SHADOW_IN);*/
-	/*gtk_container_add(GTK_CONTAINER(frame1), gstroybat_smeta_table_view_new(window));*/
-	/*gtk_container_add(GTK_CONTAINER(frame2), gstroybat_items_table_view_new(window));*/
-	
-	gtk_paned_set_start_child(GTK_PANED(splitter), gstroybat_smeta_table_view_new(window));
-	/*gtk_paned_pack1(GTK_PANED(splitter), frame1, TRUE, TRUE);*/
-	gtk_paned_set_end_child(GTK_PANED(splitter), gstroybat_items_table_view_new(window));	
-	/*gtk_paned_pack2(GTK_PANED(splitter), frame2, TRUE, TRUE);*/
+	//split window verticaly
+	GtkWidget *hsplitter = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
+	gtk_window_set_child(GTK_WINDOW(mainWindow), hsplitter);
 
-	gtk_window_set_title(GTK_WINDOW(window), "Список смет");
-	
-	gtk_window_present (GTK_WINDOW (window));
-	/*gtk_widget_show_all (GTK_WIDGET (window));*/
+	//add box to left
+	GtkWidget *leftbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
+	gtk_paned_set_start_child(GTK_PANED(hsplitter), leftbox);
 
-	YDConnect(app, YD_callback);
+	//allocate searchview
+	smetaViewSearch = gtk_entry_new();
+	
+	//add smetaView to leftbox 
+	gtk_box_append(GTK_BOX(leftbox), smeta_view_new());	
+
+	//add bottom to leftbox
+	GtkWidget *lbottom = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
+	gtk_box_append(GTK_BOX(leftbox), lbottom);	
+	
+	gtk_entry_set_placeholder_text(GTK_ENTRY(smetaViewSearch), "Поиск: название, заказчик, подрядчик, работы, объект");
+	gtk_box_append(GTK_BOX(lbottom), smetaViewSearch);	
+	gtk_widget_set_hexpand(smetaViewSearch, TRUE);	
+	
+	//add box to right
+	GtkWidget *rightbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
+	gtk_paned_set_end_child(GTK_PANED(hsplitter), rightbox);
+
+	//add horysontaly split to rightbox 
+	GtkWidget *vsplitter = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+	gtk_box_append(GTK_BOX(rightbox), vsplitter);	
+
+	//add bottom to rightbox
+	GtkWidget *rbottom = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
+	gtk_box_append(GTK_BOX(rightbox), rbottom);	
+	
+	totalPriceLabel = gtk_label_new("Итого:");
+	gtk_widget_set_hexpand(totalPriceLabel, TRUE);
+	gtk_box_append(GTK_BOX(rbottom), totalPriceLabel);	
+	
+	makeExcelButton = gtk_button_new_with_label("Excel");
+	g_signal_connect(makeExcelButton, "clicked", (GCallback)make_excel, NULL);
+	gtk_box_append(GTK_BOX(rbottom), makeExcelButton);		
+	
+	//add materialsView to top of split
+	gtk_paned_set_start_child(GTK_PANED(vsplitter), materials_view_new());	
+
+	//add servicesView to bottom of split
+	gtk_paned_set_end_child(GTK_PANED(vsplitter), services_view_new());	
+	
+	//show main window
+	gtk_window_present (GTK_WINDOW (mainWindow));
+
 }
 
 void gstroybat_application_on_deactivate (GtkWidget *widget, gpointer userData) {
-    g_application_quit (userData); // << and here
+    g_application_quit (userData);
 }
 

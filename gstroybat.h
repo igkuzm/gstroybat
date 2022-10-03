@@ -2,7 +2,7 @@
  * File              : gstroybat.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 02.10.2022
+ * Last Modified Date: 03.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include "stroybat/libstroybat.h"
 #include <stdbool.h>
-
 	
 #define database "stroybat.db"
 
@@ -21,23 +20,68 @@
 extern "C" {
 #endif
 
+//windows
+GtkWidget *mainWindow;
+
+//views
+GtkWidget *smetaView;
+
+//selections	
+StroybatSmeta * selectedSmeta;
+StroybatItem  * selectedMaterial;
+StroybatItem  * selectedService;
+int totalPriceMaterials;
+int totalPriceServices;
+int totalPrice;
+
+//buttons
+GtkWidget * smetaAddButton;
+GtkWidget * smetaRemoveButton;
+GtkWidget * smetaEditButton;
+GtkWidget * materialAddButton;
+GtkWidget * materialRemoveButton;
+GtkWidget * serviceAddButton;
+GtkWidget * serviceRemoveButton;
+GtkWidget * makeExcelButton;
+
+//labels
+GtkWidget * materialsLabel;
+GtkWidget * servicesLabel;
+GtkWidget * totalPriceLabel;
+
+//serach
+GtkWidget * smetaViewSearch;
+char	  * smetaViewSearchString;
+
+
+//update
 static bool needToUpdate = false;
 static int init_database_callback(void *user_data, pthread_t threadid, char *msg);
 
+//application functions
 void gstroybat_application_on_activate (GtkApplication *app, gpointer userData);
 void gstroybat_application_on_deactivate (GtkWidget *widget, gpointer userData);
 void gstroybat_application_menu(GtkApplication *app);
 
-GtkWidget *gstroybat_smeta_table_view_new(GtkWidget* mainWindow);
+//smeta view
+GtkWidget *smeta_view_new();
+void smeta_view_table_model_update();
+void table_model_update(StroybatSmeta *smeta);
+void store_add(GtkListStore *store, StroybatItem *item);
 
-GtkWidget *gstroybat_items_table_view_new(GtkWidget* mainWindow);
-void gstroybat_items_table_model_update(StroybatSmeta *smeta);
+//smeta edit
+void smeta_edit_new(StroybatSmeta *smeta);
 
-void gstroybat_add_item_to_store(GtkListStore *store, StroybatItem *item);
-void gstroybat_items_table_model_update(StroybatSmeta *smeta);
+//materials view
+GtkWidget *materials_view_new();
+
+//services view
+GtkWidget *services_view_new();
+
+//add items
 void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int datatype);
 
-void YDConnectInit();
+//Yandex Disk
 void YDShow();
 void YDConnect(
 		void *user_data, 
@@ -60,6 +104,7 @@ int init_database_callback(void *user_data, pthread_t threadid, char *msg){
 	return 0;
 }
 
+void make_excel();
 
 #ifdef __cplusplus
 }
