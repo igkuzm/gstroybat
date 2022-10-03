@@ -18,6 +18,16 @@ find_package(PkgConfig REQUIRED)
 #pkg_check_modules(GTK REQUIRED gtk+-3.0)
 pkg_check_modules(GTK REQUIRED gtk4)
 
+if(ANDROID)
+elseif(APPLE)
+elseif(WIN32)
+else()
+	pkg_check_modules(WEBKITGTK REQUIRED webkit2gtk-4.0)
+	SET(ADDLIBS ${WEBKITGTK_LIBRARIES})
+	SET(ADDINCL ${WEBKITGTK_INCLUDE_DIRS})
+	SET(ADDDIRS ${WEBKITGTK_LIBRARY_DIRS})
+endif()
+
 #######
 set(STROYBAT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/stroybat)
 add_subdirectory(${STROYBAT_SOURCE_DIR})
@@ -43,15 +53,15 @@ add_executable(${TARGET}
 	YDConnect.cc
 	${RESOURCE_FILES}
 )
-target_link_libraries(${TARGET} PRIVATE ${GTK_LIBRARIES} stroybat)
+target_link_libraries(${TARGET} PRIVATE ${GTK_LIBRARIES} stroybat ${ADDLIBS})
 
 # Add other flags to the compiler
 #target_compile_definitions(${TARGET} PRIVATE ${GTK_CFLAGS_OTHER})
 
 # Setup CMake to use GTK4, tell the compiler where to look for headers
 # and to the linker where to look for libraries
-target_include_directories(${TARGET} PRIVATE ${GTK_INCLUDE_DIRS})
-target_link_directories(${TARGET} PRIVATE ${GTK_LIBRARY_DIRS} ${CMAKE_PREFIX_PATH}/lib)
+target_include_directories(${TARGET} PRIVATE ${GTK_INCLUDE_DIRS} ${ADDINCL})
+target_link_directories(${TARGET} PRIVATE ${GTK_LIBRARY_DIRS} ${CMAKE_PREFIX_PATH}/lib ${ADDDIRS})
 
 if (APPLE)
 	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS}  -framework WebKit -ObjC -lstdc++")
