@@ -2,7 +2,7 @@
  * File              : itemsTableModel.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 03.10.2022
- * Last Modified Date: 03.10.2022
+ * Last Modified Date: 04.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -220,19 +220,22 @@ void ask_to_remove_item_responce(GtkDialog *dialog, gint arg1, gpointer user_dat
 		StroybatItem * item = user_data;
 		if (!item){
 			g_print("Item is NULL\n");
-			gtk_window_destroy(GTK_WINDOW(dialog));
+			/*gtk_window_destroy(GTK_WINDOW(dialog));*/
+			gtk_widget_destroy(GTK_WIDGET(dialog));
 			return;
 		}		
 		
 		if (stroybat_smeta_remove_item(database, item->uuid)){
 			g_print("Error to remove Item!\n");
-			gtk_window_destroy(GTK_WINDOW(dialog));
+			/*gtk_window_destroy(GTK_WINDOW(dialog));*/
+			gtk_widget_destroy(GTK_WIDGET(dialog));
 			return;
 		}
 			
 		table_model_update(selectedSmeta);
 	}
-	gtk_window_destroy(GTK_WINDOW(dialog));
+	/*gtk_window_destroy(GTK_WINDOW(dialog));*/
+	gtk_widget_destroy(GTK_WIDGET(dialog));
 }
 
 void ask_to_remove_item(StroybatItem * item) {
@@ -263,13 +266,16 @@ GtkWidget *items_view_new(GtkWidget *header, GtkListStore *store, STROYBAT_DATA_
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
 	
 	//add header	
-	gtk_box_append(GTK_BOX(box), header);	
+	/*gtk_box_append(GTK_BOX(box), header);	*/
+	gtk_container_add(GTK_CONTAINER(box), header);
 
 	//add scrolled window
-	GtkWidget *window = gtk_scrolled_window_new();
+	/*GtkWidget *window = gtk_scrolled_window_new();*/
+	GtkWidget *window = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_set_size_request (GTK_WIDGET(window), 900, 200);	
 	gtk_widget_set_vexpand(window, TRUE);
-	gtk_box_append(GTK_BOX(box), window);
+	/*gtk_box_append(GTK_BOX(box), window);*/
+	gtk_container_add(GTK_CONTAINER(box), window);
 
 	//create view
 	GtkWidget *view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
@@ -309,7 +315,8 @@ GtkWidget *items_view_new(GtkWidget *header, GtkListStore *store, STROYBAT_DATA_
 		gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);	
 	}
 
-	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(window), view);
+	/*gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(window), view);*/
+	gtk_container_add(GTK_CONTAINER(window), view);
 
 	return box;	
 }

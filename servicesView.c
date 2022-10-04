@@ -2,7 +2,7 @@
  * File              : servicesView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 03.10.2022
+ * Last Modified Date: 04.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -29,18 +29,21 @@ GtkWidget *services_view_header(){
 	//title
 	servicesLabel = gtk_label_new("Работы:");
 	gtk_widget_set_hexpand(servicesLabel, TRUE);
-	gtk_box_append(GTK_BOX(header), servicesLabel);	
+	//gtk_box_append(GTK_BOX(header), servicesLabel);	
+	gtk_container_add(GTK_CONTAINER(header), servicesLabel);
 
 	//add button
 	serviceAddButton = gtk_button_new_with_label("+");
 	g_signal_connect(serviceAddButton, "clicked", (GCallback)service_add_button_pushed, NULL);
-	gtk_box_append(GTK_BOX(header), serviceAddButton);	
+	//gtk_box_append(GTK_BOX(header), serviceAddButton);	
+	gtk_container_add(GTK_CONTAINER(header), serviceAddButton);
 
 	//remove button
 	serviceRemoveButton = gtk_button_new_with_label("-");
 	gtk_widget_set_sensitive(serviceRemoveButton, false);
 	g_signal_connect(serviceRemoveButton, "clicked", (GCallback)service_remove_button_pushed, NULL);
-	gtk_box_append(GTK_BOX(header), serviceRemoveButton);	
+	//gtk_box_append(GTK_BOX(header), serviceRemoveButton);	
+	gtk_container_add(GTK_CONTAINER(header), serviceRemoveButton);
 
 	return header;
 }

@@ -1,7 +1,10 @@
 set(CMAKE_SYSTEM_NAME Windows)
 
-set(CMAKE_PREFIX_PATH  "/opt/GTK4SDK-mingw64")
-set (ENV{PKG_CONFIG_PATH} "/opt/GTK4SDK-mingw64/lib/pkgconfig")
+SET(CMAKE_PREFIX_PATH  "/opt/GTK3SDK-mingw64")
+#SET(SYSROOT  "/opt/GTK3SDK-mingw64")
+#SET(ENV{PKG_CONFIG_SYSROOT_DIR} /opt/GTK3SDK-mingw64)
+SET(ENV{PKG_CONFIG_PATH} "/opt/GTK3SDK-mingw64/lib/pkgconfig")
+#SET(ENV{PKG_CONFIG_LIBDIR} /opt/GTK3SDK-mingw64/lib/pkgconfig)
 
 # cross compilers to use for C and C++
 set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)

@@ -14,9 +14,10 @@ set (CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #Use pkg_config
+set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH ON)
 find_package(PkgConfig REQUIRED)
-#pkg_check_modules(GTK REQUIRED gtk+-3.0)
-pkg_check_modules(GTK REQUIRED gtk4)
+pkg_check_modules(GTK REQUIRED gtk+-3.0)
+#pkg_check_modules(GTK REQUIRED gtk4)
 
 if(ANDROID)
 elseif(APPLE)
@@ -62,15 +63,33 @@ add_executable(${TARGET}
 	YDConnect.cc
 	${RESOURCE_FILES}
 )
-target_link_libraries(${TARGET} PRIVATE ${GTK_LIBRARIES} stroybat ${ADDLIBS})
+target_link_libraries(${TARGET} PRIVATE 
+	${GTK_LIBRARIES} 
+	stroybat 
+	${ADDLIBS}
+)
+
+#WinAPI DIRS
+if (WIN32)
+	set(WINAPI ${CMAKE_SOURCE_DIR}/winapi)
+	set(WINAPI_GTK ${WINAPI}/gtk3)
+	set(WINAPI_WEBVIEW2 ${WINAPI}/WebView2)
+endif()
 
 # Add other flags to the compiler
 #target_compile_definitions(${TARGET} PRIVATE ${GTK_CFLAGS_OTHER})
 
-# Setup CMake to use GTK4, tell the compiler where to look for headers
+# Setup CMake to use GTK, tell the compiler where to look for headers
 # and to the linker where to look for libraries
-target_include_directories(${TARGET} PRIVATE ${GTK_INCLUDE_DIRS} ${ADDINCL})
-target_link_directories(${TARGET} PRIVATE ${GTK_LIBRARY_DIRS} ${CMAKE_PREFIX_PATH}/lib ${ADDDIRS})
+target_include_directories(${TARGET} PRIVATE 
+	${GTK_INCLUDE_DIRS} 
+	${ADDINCL}
+)
+target_link_directories(${TARGET} PRIVATE 
+	${GTK_LIBRARY_DIRS} 
+	${CMAKE_PREFIX_PATH}/lib 
+	${ADDDIRS}
+)
 
 if (APPLE)
 	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS}  -framework WebKit -ObjC -lstdc++")
@@ -102,27 +121,26 @@ if (WIN32)
 	#Copy DLLs
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #64 bit	
 		file(GLOB files 
-			"${CMAKE_BINARY_DIR}/winapi/gtk4/x64/*.dll"
-			"${CMAKE_BINARY_DIR}/winapi/WebView2/x64*.dll"
+			"${WINAPI_GTK}/x64/*.dll"
+			"${WINAPI_WEBVIEW2}/x64/*.dll"
+			"${CMAKE_BINARY_DIR}/*.dll"
 			)	
-		foreach(_file ${files})
-				file(INSTALL
-					DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}"
-					FILES "${_file}"
-				)
-		endforeach()
 	elseif(CMAKE_SIZEOF_VOID_P EQUAL 4) #32 bit
 		file(GLOB files 
-			"${CMAKE_BINARY_DIR}/winapi/gtk4/x86/*.dll"
-			"${CMAKE_BINARY_DIR}/winapi/WebView2/x86*.dll"
+			"${WINAPI_GTK}/x86/*.dll"
+			"${WINAPI_WEBVIEW2}/x86/*.dll"
+			"${CMAKE_BINARY_DIR}/*.dll"
 			)	
-		foreach(_file ${files})
-				file(INSTALL
-					DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}"
-					FILES "${_file}"
-				)
-		endforeach()		
 	endif()	
+	
+	#Copy
+	foreach(_file ${files})
+			file(INSTALL
+				DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}"
+				FILES "${_file}"
+			)
+	endforeach()
+	
 	#Copy resources
 	foreach(_file ${RESOURCE_FILES})
 			file(INSTALL

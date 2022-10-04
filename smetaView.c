@@ -2,7 +2,7 @@
  * File              : smetaView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 03.10.2022
+ * Last Modified Date: 04.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -139,21 +139,25 @@ GtkWidget *smeta_view_header(){
 	GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 
 	smetaEditButton = gtk_button_new_with_label("прав.");
-	gtk_box_append(GTK_BOX(header), smetaEditButton);	
+	//gtk_box_append(GTK_BOX(header), smetaEditButton);	
+	gtk_container_add(GTK_CONTAINER(header), smetaEditButton);
 	gtk_widget_set_sensitive(smetaEditButton, false);
 	g_signal_connect(smetaEditButton, "clicked", (GCallback)smeta_edit_button_pushed, NULL);
 	
 	GtkWidget * space = gtk_label_new("");
 	gtk_widget_set_hexpand(space, TRUE);
-	gtk_box_append(GTK_BOX(header), space);	
+	//gtk_box_append(GTK_BOX(header), space);	
+	gtk_container_add(GTK_CONTAINER(header), space);
 	
 	smetaAddButton = gtk_button_new_with_label("+");
-	gtk_box_append(GTK_BOX(header), smetaAddButton);		
+	//gtk_box_append(GTK_BOX(header), smetaAddButton);		
+	gtk_container_add(GTK_CONTAINER(header), smetaAddButton);
 	g_signal_connect(smetaAddButton, "clicked", (GCallback)smeta_add_button_pushed, smetaViewStore);
 	
 	smetaRemoveButton = gtk_button_new_with_label("-");
 	gtk_widget_set_sensitive(smetaRemoveButton, false);
-	gtk_box_append(GTK_BOX(header), smetaRemoveButton);	
+	//gtk_box_append(GTK_BOX(header), smetaRemoveButton);	
+	gtk_container_add(GTK_CONTAINER(header), smetaRemoveButton);
 	//g_signal_connect(itemRemoveButton, "clicked", (GCallback)gstroybat_material_remove_button_pushed, store);
 	
 	return header;
@@ -173,12 +177,15 @@ GtkWidget *smeta_view_new(){
 	//init search view
 	smeta_view_search_init();
 	
-	gtk_box_append(GTK_BOX(box), smeta_view_header());	
+	//gtk_box_append(GTK_BOX(box), smeta_view_header());	
+	gtk_container_add(GTK_CONTAINER(box), smeta_view_header());
 
-	GtkWidget *window = gtk_scrolled_window_new();
+	//GtkWidget *window = gtk_scrolled_window_new();
+	GtkWidget *window = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_set_size_request (GTK_WIDGET(window), 200, 600);	
 	gtk_widget_set_vexpand(window, TRUE);
-	gtk_box_append(GTK_BOX(box), window);
+	//gtk_box_append(GTK_BOX(box), window);
+	gtk_container_add(GTK_CONTAINER(box), window);
 
 	smeta_view_table_model_update();
 
@@ -213,7 +220,8 @@ GtkWidget *smeta_view_new(){
 		gtk_tree_view_append_column(GTK_TREE_VIEW(smetaView), column);	
 	}
 
-	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(window), smetaView);
+	//gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(window), smetaView);
+	gtk_container_add(GTK_CONTAINER(window), smetaView);
 
 	return box;
 }

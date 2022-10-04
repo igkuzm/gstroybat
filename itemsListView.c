@@ -2,7 +2,7 @@
  * File              : itemsListView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 12.02.2022
- * Last Modified Date: 03.10.2022
+ * Last Modified Date: 04.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -135,8 +135,8 @@ void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int _da
 
 	itemsListViewStore = gstroybat_items_list_table_model_new();
 
-	GtkWidget *win = gtk_window_new();
-	/*GtkWidget *win = gtk_window_new(GTK_WINDOW_TOPLEVEL);*/
+	//GtkWidget *win = gtk_window_new();
+	GtkWidget *win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_modal(GTK_WINDOW(win), true);
 
 	char *title;
@@ -150,25 +150,25 @@ void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int _da
 	gtk_window_set_title(GTK_WINDOW(win), title);
 
 	GtkWidget *winbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
-	gtk_window_set_child(GTK_WINDOW(win), winbox);
-	/*gtk_container_add(GTK_CONTAINER(win), winbox);*/
+	//gtk_window_set_child(GTK_WINDOW(win), winbox);
+	gtk_container_add(GTK_CONTAINER(win), winbox);
 
 	GtkWidget *search = gtk_entry_new();
 	gtk_entry_set_placeholder_text(GTK_ENTRY(search), "Поиск: название");
 	g_signal_connect (search, "changed", G_CALLBACK (gstroybat_smeta_items_list_changed), itemsListViewStore);
 	g_signal_connect (search, "insert-at-cursor", G_CALLBACK (gstroybat_smeta_items_list_changed), itemsListViewStore);	
 
-	gtk_box_append(GTK_BOX(winbox), search);	
-	/*gtk_container_add(GTK_CONTAINER(winbox), search);*/
+	//gtk_box_append(GTK_BOX(winbox), search);	
+	gtk_container_add(GTK_CONTAINER(winbox), search);
 	gtk_widget_set_hexpand(search, TRUE);	
 
-	GtkWidget *scrolledWindow = gtk_scrolled_window_new();
-	/*GtkWidget *scrolledWindow = gtk_scrolled_window_new(NULL, NULL);*/
+	//GtkWidget *scrolledWindow = gtk_scrolled_window_new();
+	GtkWidget *scrolledWindow = gtk_scrolled_window_new(NULL, NULL);
 	gtk_widget_set_size_request(scrolledWindow, 600, 400);	
 	gtk_widget_set_vexpand(scrolledWindow, TRUE);
 	gtk_widget_set_hexpand(scrolledWindow, TRUE);
-	gtk_box_append(GTK_BOX(winbox), scrolledWindow);	
-	/*gtk_container_add(GTK_CONTAINER(winbox), scrolledWindow);*/
+	//gtk_box_append(GTK_BOX(winbox), scrolledWindow);	
+	gtk_container_add(GTK_CONTAINER(winbox), scrolledWindow);
 
 	treeView = gtk_tree_view_new();
 	//gtk_tree_view_set_search_entry(GTK_TREE_VIEW(treeView), search);
@@ -204,10 +204,11 @@ void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int _da
 		gtk_tree_view_append_column(GTK_TREE_VIEW(treeView), column);	
 	}
 
-	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolledWindow), treeView);
-	/*gtk_container_add(GTK_CONTAINER(scrolledWindow), treeView);*/
+	//gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolledWindow), treeView);
+	gtk_container_add(GTK_CONTAINER(scrolledWindow), treeView);
 
 	gstroybat_items_list_view_store_update(NULL, itemsListViewStore, datatype);
 
-	gtk_widget_show(win);
+	//gtk_widget_show(win);
+	gtk_widget_show_all(win);
 }

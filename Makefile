@@ -1,7 +1,7 @@
 # File              : Makefile
 # Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
 # Date              : 06.12.2021
-# Last Modified Date: 03.10.2022
+# Last Modified Date: 04.10.2022
 # Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
 
 PWD=`pwd`
@@ -14,7 +14,7 @@ mac:
 	mkdir -p build && cd build && cmake .. && make install
 
 win:
-	mkdir -p build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../mingw.cmake .. && make && open $(PROJECT_NAME)/$(PROJECT_NAME).exe
+	export PKG_CONFIG_PATH="/opt/GTK3SDK-mingw64/lib/pkgconfig" && mkdir -p build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../mingw.cmake .. && make && open $(PROJECT_NAME)/$(PROJECT_NAME).exe
 
 clean:
 	rm -fr build

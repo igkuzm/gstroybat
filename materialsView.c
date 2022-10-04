@@ -2,7 +2,7 @@
  * File              : materialsView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 03.10.2022
+ * Last Modified Date: 04.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -29,18 +29,21 @@ GtkWidget *materials_view_header(){
 	//title
 	materialsLabel = gtk_label_new("Материалы:");
 	gtk_widget_set_hexpand(materialsLabel, TRUE);
-	gtk_box_append(GTK_BOX(header), materialsLabel);	
+	/*gtk_box_append(GTK_BOX(header), materialsLabel);	*/
+	gtk_container_add(GTK_CONTAINER(header), materialsLabel);
 
 	//add button
 	materialAddButton = gtk_button_new_with_label("+");
 	g_signal_connect(materialAddButton, "clicked", (GCallback)material_add_button_pushed, materialsViewStore);
-	gtk_box_append(GTK_BOX(header), materialAddButton);		
+	/*gtk_box_append(GTK_BOX(header), materialAddButton);		*/
+	gtk_container_add(GTK_CONTAINER(header), materialAddButton);
 	
 	//remove button
 	materialRemoveButton = gtk_button_new_with_label("-");
 	gtk_widget_set_sensitive(materialRemoveButton, false);
 	g_signal_connect(materialRemoveButton, "clicked", (GCallback)material_remove_button_pushed, materialsViewStore);
-	gtk_box_append(GTK_BOX(header), materialRemoveButton);	
+	/*gtk_box_append(GTK_BOX(header), materialRemoveButton);	*/
+	gtk_container_add(GTK_CONTAINER(header), materialRemoveButton);
 
 	return header;
 }

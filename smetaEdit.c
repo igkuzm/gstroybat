@@ -2,7 +2,7 @@
  * File              : smetaEdit.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 03.10.2022
+ * Last Modified Date: 04.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -86,7 +86,8 @@ GtkWidget * smeta_edit_widget(
 	g_signal_connect (entry, "changed", G_CALLBACK (smeta_edit_changed), smeta);
 	/*g_signal_connect (entry, "insert-at-cursor", G_CALLBACK (smeta_view_search_changed), store);	*/
 
-	gtk_box_append(GTK_BOX(box), entry);
+	/*gtk_box_append(GTK_BOX(box), entry);*/
+	gtk_container_add(GTK_CONTAINER(box), entry);
 
 	//space
 	/*GtkWidget * space = gtk_label_new("");*/
@@ -95,7 +96,8 @@ GtkWidget * smeta_edit_widget(
 
 	//add description label
 	GtkWidget *label = gtk_label_new(description);
-	gtk_box_append(GTK_BOX(box), label);
+	/*gtk_box_append(GTK_BOX(box), label);*/
+	gtk_container_add(GTK_CONTAINER(box), label);
 
 	return box;
 }
@@ -103,14 +105,16 @@ GtkWidget * smeta_edit_widget(
 void smeta_edit_new(StroybatSmeta *smeta){
 
 	//create new modal window 
-	GtkWidget *win = gtk_window_new();
+	/*GtkWidget *win = gtk_window_new();*/
+	GtkWidget *win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	//g_signal_connect(G_OBJECT(win), "destroy", G_CALLBACK(smeta_edit_on_deactivate), smeta);
 	gtk_window_set_modal(GTK_WINDOW(win), true);
 	gtk_window_set_title(GTK_WINDOW(win), "Редактирование сметы");
 	
 	//create main container
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
-	gtk_window_set_child(GTK_WINDOW(win), box);
+	/*gtk_window_set_child(GTK_WINDOW(win), box);*/
+	gtk_container_add(GTK_CONTAINER(win), box);
 	
 	//add widgets
 	const char *titles[] = {"Наименование", "Дата", "Заказчик", "Подрядчик", "Объект", "Работы", "Основание"};
@@ -118,10 +122,12 @@ void smeta_edit_new(StroybatSmeta *smeta){
 	const char *keys[]   = {"title", "date", "zakazchik", "podriadchik", "obiekt", "raboti", "osnovanie"};
 	for (int i = 0; i < N_COLUMNS; ++i) {
 		GtkWidget *widget = smeta_edit_widget(smeta, values[i], keys[i], titles[i]);
-		gtk_box_append(GTK_BOX(box), widget);
+		/*gtk_box_append(GTK_BOX(box), widget);*/
+		gtk_container_add(GTK_CONTAINER(box), widget);
 	}
 
 	//show window
-	gtk_window_present(GTK_WINDOW(win));
+	/*gtk_window_present(GTK_WINDOW(win));*/
+	gtk_widget_show_all(win);
 }
 
