@@ -22,12 +22,12 @@ if(ANDROID)
 elseif(APPLE)
 elseif(WIN32)
 	#add WebView2
-	INCLUDE_DIRECTORIES(WebView2/include)
-	SET(ADDLIBS WebView2Loader)
+	INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/winapi/WebView2/include)
+	SET(ADDLIBS WebView2Loader shlwapi)
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #64 bit	
-		SET(ADDDIRS ${CMAKE_SOURCE_DIR}/WebView2/x64)
+		SET(ADDDIRS ${CMAKE_SOURCE_DIR}/winapi/WebView2/x64)
 	elseif(CMAKE_SIZEOF_VOID_P EQUAL 4) #32 bit
-		SET(ADDDIRS ${CMAKE_SOURCE_DIR}/WebView2/x86)
+		SET(ADDDIRS ${CMAKE_SOURCE_DIR}/winapi/WebView2/x86)
 	endif()	
 else()
 	#add webkit2gtk
@@ -93,29 +93,36 @@ if (APPLE)
 endif()
 
 if (WIN32)
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,-allow-multiple-definition -lstdc++")
+	
 	#Make directory
 	set(INSTALL_DIR ${CMAKE_BINARY_DIR}/${TARGET})
 	file(MAKE_DIRECTORY ${INSTALL_DIR})
 	
 	#Copy DLLs
-	#file(GLOB files "${GTK_LIBRARY_DIRS}/../bin/*.dll")
-	file(GLOB files "${CMAKE_BINARY_DIR}/../winlibs/*")	
-	foreach(_file ${files})
-			file(INSTALL
-				DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}"
-				FILES "${_file}"
-			)
-	endforeach()
-
-	#copy WebView2 libs
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #64 bit	
-		file(INSTALL DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}" FILES 
-			"${CMAKE_SOURCE_DIR}/WebView2/x64/WebView2Loader.dll")
+		file(GLOB files 
+			"${CMAKE_BINARY_DIR}/winapi/gtk4/x64/*.dll"
+			"${CMAKE_BINARY_DIR}/winapi/WebView2/x64*.dll"
+			)	
+		foreach(_file ${files})
+				file(INSTALL
+					DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}"
+					FILES "${_file}"
+				)
+		endforeach()
 	elseif(CMAKE_SIZEOF_VOID_P EQUAL 4) #32 bit
-		file(INSTALL DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}" FILES
-			"${CMAKE_SOURCE_DIR}/WebView2/x86/WebView2Loader.dll")
+		file(GLOB files 
+			"${CMAKE_BINARY_DIR}/winapi/gtk4/x86/*.dll"
+			"${CMAKE_BINARY_DIR}/winapi/WebView2/x86*.dll"
+			)	
+		foreach(_file ${files})
+				file(INSTALL
+					DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}"
+					FILES "${_file}"
+				)
+		endforeach()		
 	endif()	
-
 	#Copy resources
 	foreach(_file ${RESOURCE_FILES})
 			file(INSTALL
