@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	g_signal_connect (app, "activate", G_CALLBACK (gstroybat_application_on_activate), NULL); 
 
 	//add Yandex Disk connection window (background) 
-	/*YDConnect(app, YD_callback);*/
+	YDConnect(app, YD_callback);
 	
 	//run gtk
 	return g_application_run (G_APPLICATION (app), argc, argv);

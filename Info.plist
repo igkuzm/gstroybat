@@ -9,7 +9,9 @@
 	<key>CFBundleGetInfoString</key>
 	<string>Copyright ig.kuzm@gmail.com</string>
 	<key>CFBundleIconFile</key>
-	<string>gstroybat.icns</string>
+	<string>AppIcon</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>	
 	<key>CFBundleIdentifier</key>
 	<string>kuzm.ig.gstroybat</string>
 	<key>CFBundleInfoDictionaryVersion</key>

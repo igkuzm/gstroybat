@@ -1,9 +1,11 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.2)
 
 set(TARGET gstroybat)
 
+set(VERSION 1.0)
+
 project(${TARGET} 
-	VERSION 1.0 
+	VERSION ${VERSION} 
 	DESCRIPTION "GTK GUI application for Smeta"
 	HOMEPAGE_URL ""
 	LANGUAGES C CXX 
@@ -22,6 +24,8 @@ pkg_check_modules(GTK REQUIRED gtk+-3.0)
 if(ANDROID)
 elseif(APPLE)
 elseif(WIN32)
+	#add icon
+	set(ADDSRC AppIcons/AppIcon.rc)
 	#add WebView2
 	INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/winapi/WebView2/include)
 	SET(ADDLIBS WebView2Loader shlwapi)
@@ -61,6 +65,7 @@ add_executable(${TARGET}
 	itemsTableModel.c
 	mainMenu.c
 	YDConnect.cc
+	${ADDSRC}
 	${RESOURCE_FILES}
 )
 target_link_libraries(${TARGET} PRIVATE 
@@ -91,68 +96,141 @@ target_link_directories(${TARGET} PRIVATE
 	${ADDDIRS}
 )
 
+include(InstallRequiredSystemLibraries)
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/lICENSE.md")
+set(CPACK_PACKAGE_FILE_NAME "${TARGET}-${VERSION}")
+
 if (APPLE)
+	SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.10")
 	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS}  -framework WebKit -ObjC -lstdc++")
+
+	#add icons
+	target_sources(${TARGET} PRIVATE AppIcons/Assets.xcassets)
+	set_source_files_properties(AppIcons/Assets.xcassets PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+	set_target_properties(${TARGET} PROPERTIES XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon")
+
+	
+	set(BUNDLENAME ${TARGET})
+	set(PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
 	set_target_properties(${TARGET} PROPERTIES
 		MACOSX_BUNDLE TRUE
-		MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist
-		MACOSX_BUNDLE_BUNDLE_NAME ${TARGET}
+		MACOSX_BUNDLE_ICON_FILE AppIcon.icns
+		MACOSX_BUNDLE_INFO_PLIST ${PLIST}
+		MACOSX_BUNDLE_BUNDLE_NAME ${BUNDLENAME}
 		MACOSX_BUNDLE_GUI_IDENTIFIER kuzm.ig.${TARGET}
 		MACOSX_BUNDLE_BUNDLE_VERSION ${CMAKE_PROJECT_VERSION}
 		RESOURCE "${RESOURCE_FILES}"
 	)
 
-	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR})
-	set(APP ${CMAKE_INSTALL_PREFIX}/${TARGET}.app)
-	set(DIRS ${GTK_LIBRARY_DIRS})
-	INSTALL(CODE "
-		include(BundleUtilities)
-		fixup_bundle(\"${APP}\" \"\" \"${DIRS}\")
-		" COMPONENT Runtime)
+	set(CPACK_DMG_SLA_USE_RESOURCE_FILE_LICENSE ${CPACK_RESOURCE_FILE_LICENSE})
+	set(CPACK_DMG_VOLUME_NAME ${TARGET})
+	#set(CPACK_DMG_FORMAT UDBZ)
+	#set(CPACK_DMG_DS_STORE_SETUP_SCRIPT "${CMAKE_SOURCE_DIR}/CMakeDMGSetup.scpt")
+	set (CPACK_DMG_BACKGROUND_IMAGE ${CMAKE_SOURCE_DIR}/AppIcons/CMakeDMGBackground.tif)
+	#set(CPACK_PACKAGE_EXECUTABLES "${TARGET}.app" "${TARGET}.app")
+	#set (CPACK_CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/macInstallerFiles/DS_Store)
+
+	#generate icons, copy GTK libs to bundle and code sign
+	SET(IDENTITY "Apple Development: Igor Sementsov (58E746N546)")
+	
+	#make script to sign files
+	execute_process(
+		COMMAND echo 
+		"#/bin/bash
+		codesign --force --timestamp=none --sign \"${IDENTITY}\" ${CMAKE_BINARY_DIR}/${TARGET}.app/Contents/Frameworks/*
+		codesign --force --timestamp=none --sign \"${IDENTITY}\" ${CMAKE_BINARY_DIR}/${TARGET}.app
+		" 
+		OUTPUT_FILE codesign.sh 
+	)
+	
+	INSTALL(CODE 
+		"
+			include(InstallRequiredSystemLibraries)
+			include(BundleUtilities) 
+			fixup_bundle(
+				\"${CMAKE_BINARY_DIR}/${TARGET}.app\" 
+				\"\" 
+				\"${GTK_LIBRARY_DIRS}\"
+			)
+			execute_process(COMMAND 
+				actool 
+				--output-format human-readable-text
+				--app-icon AppIcon 
+				--output-partial-info-plist assetcatalog_generated_info.plist 
+				--compress-pngs --enable-on-demand-resources YES
+				--platform macosx
+				--minimum-deployment-target \"${CMAKE_OSX_DEPLOYMENT_TARGET}\" 
+				--compile . 
+				\"${CMAKE_CURRENT_SOURCE_DIR}/AppIcons/Assets.xcassets\" 
+			)			
+			execute_process(COMMAND
+				cp AppIcon.icns \"${CMAKE_BINARY_DIR}/${TARGET}.app/Contents/Resources\" 
+			)		
+			execute_process(COMMAND
+				chmod +x codesign.sh
+			)
+			execute_process(COMMAND
+				./codesign.sh
+			)		
+		" 
+		COMPONENT Runtime
+	)
+	
 endif()
 
 if (WIN32)
 	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,-allow-multiple-definition -lstdc++")
 	
-	#Make directory
-	set(INSTALL_DIR ${CMAKE_BINARY_DIR}/${TARGET})
-	file(MAKE_DIRECTORY ${INSTALL_DIR})
-	
 	#Copy DLLs
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #64 bit	
-		file(GLOB files 
+		file(GLOB DLLS 
 			"${WINAPI_GTK}/x64/*.dll"
 			"${WINAPI_WEBVIEW2}/x64/*.dll"
 			"${CMAKE_BINARY_DIR}/*.dll"
 			)	
+		file(GLOB EXE
+			"${WINAPI_WEBVIEW2}/x64/MicrosoftEdgeWebView2RuntimeInstaller.exe"
+			)
 	elseif(CMAKE_SIZEOF_VOID_P EQUAL 4) #32 bit
-		file(GLOB files 
+		file(GLOB DLLS 
 			"${WINAPI_GTK}/x86/*.dll"
 			"${WINAPI_WEBVIEW2}/x86/*.dll"
 			"${CMAKE_BINARY_DIR}/*.dll"
 			)	
+		file(GLOB EXE
+			"${WINAPI_WEBVIEW2}/x86/MicrosoftEdgeWebView2RuntimeInstaller.exe"
+			)		
 	endif()	
+	install(FILES ${DLLS} DESTINATION bin)	
+	install(FILES ${EXE} DESTINATION .)	
+	install(TARGETS ${TARGET} RUNTIME DESTINATION bin)
 	
-	#Copy
-	foreach(_file ${files})
-			file(INSTALL
-				DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}"
-				FILES "${_file}"
-			)
-	endforeach()
-	
-	#Copy resources
-	foreach(_file ${RESOURCE_FILES})
-			file(INSTALL
-				DESTINATION "${CMAKE_BINARY_DIR}/${TARGET}"
-				FILES "${_file}"
-			)
-	endforeach()	
+	set(CPACK_GENERATOR NSIS)
+	set(CPACK_PACKAGE_INSTALL_DIRECTORY "${TARGET}")
+	set (CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/icons/icon.ico")
+	set (CPACK_NSIS_MUI_UNIICON  "${CMAKE_SOURCE_DIR}/icons/icon.ico")
+	set(CPACK_NSIS_PACKAGE_NAME "${TARGET}")
+	set(CPACK_NSIS_DISPLAY_NAME "${TARGET}")
+	set(CPACK_NSIS_CONTACT "ig.kuzm@gmail.com")
+	set(CPACK_PACKAGE_EXECUTABLES "${TARGET}" "${TARGET}")
+	set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "${CMAKE_PROJECT_NAME}-${VERSION}")
+	set(CPACK_CREATE_DESKTOP_LINKS "${TARGET}")
 
-	#Copy EXE file
-	add_custom_command(TARGET ${TARGET} POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/${TARGET}.exe ${INSTALL_DIR}/${TARGET}.exe
-	)
+	# Icon in the add/remove control panel. Must be an .exe file 
+	set(CPACK_NSIS_INSTALLED_ICON_NAME bin\\\\${TARGET}.exe)
+
+	set(CPACK_NSIS_URL_INFO_ABOUT "ig.kuzm@gmail.com")
+	set(CPACK_NSIS_HELP_LINK "ig.kuzm@gmail.com")
+	
+	set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+		ExecWait '\\\"$INSTDIR\\\\MicrosoftEdgeWebView2RuntimeInstaller.exe\\\" /install'\n		
+		CreateShortCut \\\"$DESKTOP\\\\${TARGET}.lnk\\\" \\\"$INSTDIR\\\\bin\\\\${TARGET}.exe\\\"
+	")
+
+	set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+		Delete \\\"$DESKTOP\\\\${TARGET}.lnk\\\"
+	")
+
 endif()
-
+include(CPack)
 
