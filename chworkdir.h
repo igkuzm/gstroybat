@@ -51,19 +51,10 @@ extern "C"{
 #else
 int k_lib_chWorkDir_cp(const char *from, const char *to)
 {
-	//check time
-	struct stat from_st;
-	if (stat(from, &from_st) == -1)
-		return -1;
-
-	struct stat to_st;
-	if (stat(to, &to_st) == -1)
-		return -1;
-
-	//don't overwrite if date grater
-	if (to_st.st_mtim.tv_sec > from_st.st_mtim.tv_sec)
+	//check if file exist - exit if is (don't overwrite)
+	if (access(to, F_OK) == 0)
 		return 1;
-
+	
 	//open streams
 	FILE * fp_from = fopen(from, "r");
 	if (!fp_from) 

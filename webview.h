@@ -1337,7 +1337,6 @@ public:
       m_window = *(static_cast<HWND *>(window));
     }
 
-    //ShowWindow(m_window, SW_HIDE);
 	ShowWindow(m_window, SW_SHOW);
 	UpdateWindow(m_window);
 	SetFocus(m_window);
@@ -1348,6 +1347,8 @@ public:
     embed(m_window, debug, cb);
     resize(m_window);
     m_controller->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
+    
+	ShowWindow(m_window, SW_HIDE);
   }
 
   virtual ~win32_edge_engine() {
