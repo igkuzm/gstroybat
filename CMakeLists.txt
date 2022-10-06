@@ -232,7 +232,7 @@ elseif (WIN32)
 else()
 	#Linux and Unix systems
 	if (NOT ANDROID)
-		target_link_libraries(${TARGET} pthread dl)
+		SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -pthread -ldl")
 	endif()	
 	install(TARGETS ${TARGET} RUNTIME DESTINATION bin)	
 	install(FILES ${RESOURCE_FILES} DESTINATION share/${TARGET})	
