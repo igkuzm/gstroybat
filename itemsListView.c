@@ -2,7 +2,7 @@
  * File              : itemsListView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 12.02.2022
- * Last Modified Date: 04.10.2022
+ * Last Modified Date: 06.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -59,7 +59,7 @@ int gtroybat_fill_items_list_with_items(StroybatItem *item, void *data, char *er
 	gstroybat_add_item_to_tree_store(itemsListViewStore, item, &iter, parent);
 
 	if (item->id > 0) {
-		stroybat_data_get_for_parent(database, datatype, item->id, &iter, gtroybat_fill_items_list_with_items);
+		stroybat_data_get_for_parent(DATABASE, datatype, item->id, &iter, gtroybat_fill_items_list_with_items);
 	}
 
 	return 0;
@@ -77,10 +77,10 @@ void gstroybat_items_list_view_store_update(const char *search, GtkTreeStore *st
 	gtk_tree_store_clear(store);
 	
 	if (search) {
-		stroybat_data_get(database, datatype, search, NULL, gtroybat_fill_items_list_with_items);
+		stroybat_data_get(DATABASE, datatype, search, NULL, gtroybat_fill_items_list_with_items);
 		
 	} else {
-		stroybat_data_get_for_parent(database, datatype, 0, NULL, gtroybat_fill_items_list_with_items);
+		stroybat_data_get_for_parent(DATABASE, datatype, 0, NULL, gtroybat_fill_items_list_with_items);
 	}
 }
 
@@ -102,7 +102,7 @@ void gstroybat_items_list_tree_view_row_activated(GtkTreeView *treeview, GtkTree
 				StroybatItem *newItem = stroybat_item_new(NULL, item->title, item->unit, item->price, 1, datatype);
 
 				
-				stroybat_smeta_add_item(database, smeta->uuid, newItem);
+				stroybat_smeta_add_item(DATABASE, smeta->uuid, newItem);
 				table_model_update(smeta);
 			}
 

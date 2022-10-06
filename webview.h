@@ -2,7 +2,7 @@
  * File              : webview.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 02.10.2022
- * Last Modified Date: 03.10.2022
+ * Last Modified Date: 06.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 /*
@@ -449,14 +449,6 @@ namespace detail {
 
 class gtk_webkit_engine {
 
-//don't delete widget - just hide
-gboolean
-on_widget_deleted(GtkWidget *widget, GdkEvent *event, gpointer data)
-{
-    gtk_widget_hide(widget);
-    return TRUE;
-}	
-
 public:
   gtk_webkit_engine(bool debug, void *window)
       : m_window(static_cast<GtkWidget *>(window)) {
@@ -469,8 +461,12 @@ public:
     }
 
 	//hide window on close
-    g_signal_connect(G_OBJECT(m_window), 
-        "delete-event", G_CALLBACK(on_widget_deleted), NULL);
+	g_signal_connect(G_OBJECT(m_window), "delete-event",
+					 G_CALLBACK(+[](GtkWidget *widget, gpointer arg) {
+						gtk_widget_hide(widget);
+						return TRUE;
+					 }),
+					 this);	
 	
     /*g_signal_connect(G_OBJECT(m_window), "destroy",*/
                      /*G_CALLBACK(+[](GtkWidget *, gpointer arg) {*/
@@ -1341,9 +1337,10 @@ public:
       m_window = *(static_cast<HWND *>(window));
     }
 
-    ShowWindow(m_window, SW_SHOW);
-    UpdateWindow(m_window);
-    SetFocus(m_window);
+    //ShowWindow(m_window, SW_SHOW);
+    ShowWindow(m_window, SW_HIDE);
+    //UpdateWindow(m_window);
+    //SetFocus(m_window);
 
     auto cb =
         std::bind(&win32_edge_engine::on_message, this, std::placeholders::_1);
@@ -1403,6 +1400,8 @@ public:
   
   void show() {
     ShowWindow(m_window, SW_SHOW);
+	UpdateWindow(m_window);
+	SetFocus(m_window);	
   }
 
   void hide() {

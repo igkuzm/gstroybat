@@ -2,7 +2,7 @@
  * File              : smetaView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 04.10.2022
+ * Last Modified Date: 06.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -60,7 +60,7 @@ void smeta_view_table_model_update(){
 	gtk_tree_model_foreach (GTK_TREE_MODEL(smetaViewStore), smeta_view_table_model_free, NULL);
 	gtk_list_store_clear(smetaViewStore);
 	
-	stroybat_smeta_get_all(database, smetaViewSearchString, smetaViewStore, smeta_view_fill);
+	stroybat_smeta_get_all(DATABASE, smetaViewSearchString, smetaViewStore, smeta_view_fill);
 }
 
 void smeta_view_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *col, gpointer userdata){
@@ -128,7 +128,7 @@ void smeta_edit_button_pushed(GtkButton *button, gpointer user_data){
 void smeta_add_button_pushed(GtkButton *button, gpointer user_data){
 	g_print("Add button clicked\n");
 
-	StroybatSmeta *smeta = stroybat_smeta_new(database);
+	StroybatSmeta *smeta = stroybat_smeta_new(DATABASE);
 	smeta_view_table_model_update();	
 	if (smeta)
 		smeta_edit_new(smeta);

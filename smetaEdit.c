@@ -2,7 +2,7 @@
  * File              : smetaEdit.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 04.10.2022
+ * Last Modified Date: 06.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -64,7 +64,7 @@ void smeta_edit_changed(GtkWidget *widget, gpointer user_data){
 	}
 
 	g_print("set value: %s for key:%s\n", value, key);
-	if (!stroybat_smeta_set_value_for_key(database, smeta->uuid, value, key))
+	if (!stroybat_smeta_set_value_for_key(DATABASE, smeta->uuid, value, key))
 		smeta_view_table_model_update();
 }
 

@@ -121,6 +121,7 @@ if (APPLE)
 		MACOSX_BUNDLE_BUNDLE_VERSION ${CMAKE_PROJECT_VERSION}
 		RESOURCE "${RESOURCE_FILES}"
 	)
+	
 
 	set(CPACK_DMG_SLA_USE_RESOURCE_FILE_LICENSE ${CPACK_RESOURCE_FILE_LICENSE})
 	set(CPACK_DMG_VOLUME_NAME ${TARGET})
@@ -175,11 +176,8 @@ if (APPLE)
 		" 
 		COMPONENT Runtime
 	)
-	
-endif()
-
-if (WIN32)
-	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,-allow-multiple-definition -lstdc++")
+elseif (WIN32)
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -mwindows -Wl,-allow-multiple-definition -lstdc++")
 	
 	#Copy DLLs
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #64 bit	
@@ -202,13 +200,14 @@ if (WIN32)
 			)		
 	endif()	
 	install(FILES ${DLLS} DESTINATION bin)	
+	install(FILES ${RESOURCE_FILES} DESTINATION bin)	
 	install(FILES ${EXE} DESTINATION .)	
 	install(TARGETS ${TARGET} RUNTIME DESTINATION bin)
 	
 	set(CPACK_GENERATOR NSIS)
 	set(CPACK_PACKAGE_INSTALL_DIRECTORY "${TARGET}")
-	set (CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/icons/icon.ico")
-	set (CPACK_NSIS_MUI_UNIICON  "${CMAKE_SOURCE_DIR}/icons/icon.ico")
+	set (CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/AppIcons/icon.ico")
+	set (CPACK_NSIS_MUI_UNIICON  "${CMAKE_SOURCE_DIR}/AppIcons/icon.ico")
 	set(CPACK_NSIS_PACKAGE_NAME "${TARGET}")
 	set(CPACK_NSIS_DISPLAY_NAME "${TARGET}")
 	set(CPACK_NSIS_CONTACT "ig.kuzm@gmail.com")
@@ -230,7 +229,13 @@ if (WIN32)
 	set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
 		Delete \\\"$DESKTOP\\\\${TARGET}.lnk\\\"
 	")
-
+else()
+	#Linux and Unix systems
+	if (NOT ANDROID)
+		target_link_libraries(${TARGET} pthread dl)
+	endif()	
+	install(TARGETS ${TARGET} RUNTIME DESTINATION bin)	
+	install(FILES ${RESOURCE_FILES} DESTINATION share/${TARGET})	
 endif()
 include(CPack)
 

@@ -2,7 +2,7 @@
  * File              : main.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 04.10.2022
+ * Last Modified Date: 06.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -26,7 +26,7 @@ int YD_callback(void *user_data, char *token, time_t expires, char *reftoken, ch
 		gtk_widget_show(dialog);
 		
 		/*needToUpdate = true;*/
-		/*stroybat_init(database, token, NULL, init_database_callback);*/
+		/*stroybat_init(DATABASE, token, NULL, init_database_callback);*/
 	}
 	return 0;
 }
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	printf("init with token: %s\n", token);
 
 	//init database
-	stroybat_init(database, token, NULL, init_database_callback);
+	stroybat_init(DATABASE, token, NULL, init_database_callback);
 
 	//init GTK
 	GtkApplication *app = gtk_application_new ("kuzm.ig.gstroybat", 0);
@@ -68,7 +68,7 @@ void make_excel(){
 		GFile *file = g_file_new_for_path("tmp.xlsx"); 
 		g_file_copy(template, file, G_FILE_COPY_OVERWRITE, NULL, NULL, NULL, NULL);
 		
-		stroybat_smeta_create_xlsx(database, selectedSmeta, "tmp.xlsx");
+		stroybat_smeta_create_xlsx(DATABASE, selectedSmeta, "tmp.xlsx");
 		openfile("tmp.xlsx");
 	} else {
 		g_print("Error to get smeta data!\n");

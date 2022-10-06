@@ -2,7 +2,7 @@
  * File              : gstroybat.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 03.10.2022
+ * Last Modified Date: 06.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -14,7 +14,7 @@
 #include "stroybat/libstroybat.h"
 #include <stdbool.h>
 	
-#define database "stroybat.db"
+#define DATABASE "stroybat.db"
 
 #ifdef __cplusplus
 extern "C" {

@@ -2,7 +2,7 @@
  * File              : itemsTableModel.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 03.10.2022
- * Last Modified Date: 04.10.2022
+ * Last Modified Date: 06.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -76,7 +76,7 @@ void table_model_update(StroybatSmeta *smeta){
 	totalPriceServices = 0;
 	totalPrice = 0;	
 
-	stroybat_smeta_items_get(database, smeta->uuid, NULL, fill_table);
+	stroybat_smeta_items_get(DATABASE, smeta->uuid, NULL, fill_table);
 
 	gtk_label_set_text(GTK_LABEL(materialsLabel), STR("Материалы: %d руб.", totalPriceMaterials));	
 	gtk_label_set_text(GTK_LABEL(servicesLabel), STR("Работы: %d руб.", totalPriceServices));	
@@ -164,7 +164,7 @@ void table_cell_edited_callback (GtkCellRendererText *cell, gchar *path_string, 
 		case COLUMN_TITLE:
 			{
 				g_print("Set Item Title to: %s\n", new_text);
-				int err = stroybat_item_set_value_for_key(database, item->uuid, new_text, "title");
+				int err = stroybat_item_set_value_for_key(DATABASE, item->uuid, new_text, "title");
 				if (err){
 					g_print("Error to change item title! Err: %d\n", err);
 				} else {
@@ -175,7 +175,7 @@ void table_cell_edited_callback (GtkCellRendererText *cell, gchar *path_string, 
 		case COLUMN_UNIT:
 			{
 				g_print("Set Item Unit to: %s\n", new_text);
-				int err = stroybat_item_set_value_for_key(database, item->uuid, new_text, "unit");
+				int err = stroybat_item_set_value_for_key(DATABASE, item->uuid, new_text, "unit");
 				if (err){
 					g_print("Error to change item unit! Err: %d\n", err);
 				} else {
@@ -188,7 +188,7 @@ void table_cell_edited_callback (GtkCellRendererText *cell, gchar *path_string, 
 				g_print("Set Item Price to: %s\n", new_text);
 				int price;
 				sscanf(new_text, "%d", &price);
-				int err = stroybat_item_set_value_for_key(database, item->uuid, new_text, "unit");
+				int err = stroybat_item_set_value_for_key(DATABASE, item->uuid, new_text, "unit");
 				if (err){
 					g_print("Error to change item price! Err: %d\n", err);
 				} else {
@@ -201,7 +201,7 @@ void table_cell_edited_callback (GtkCellRendererText *cell, gchar *path_string, 
 				g_print("Set Item Count to: %s\n", new_text);
 				int count;
 				sscanf(new_text, "%d", &count);
-				int err = stroybat_item_set_value_for_key(database, item->uuid, new_text, "count");
+				int err = stroybat_item_set_value_for_key(DATABASE, item->uuid, new_text, "count");
 				if (err){
 					g_print("Error to change item price! Err: %d\n", err);
 				} else {
@@ -225,7 +225,7 @@ void ask_to_remove_item_responce(GtkDialog *dialog, gint arg1, gpointer user_dat
 			return;
 		}		
 		
-		if (stroybat_smeta_remove_item(database, item->uuid)){
+		if (stroybat_smeta_remove_item(DATABASE, item->uuid)){
 			g_print("Error to remove Item!\n");
 			/*gtk_window_destroy(GTK_WINDOW(dialog));*/
 			gtk_widget_destroy(GTK_WIDGET(dialog));

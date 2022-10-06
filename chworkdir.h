@@ -2,7 +2,7 @@
  * File              : chworkdir.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 21.02.2022
- * Last Modified Date: 06.09.2022
+ * Last Modified Date: 06.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -61,7 +61,7 @@ int k_lib_chWorkDir_cp(const char *from, const char *to)
 		return -1;
 
 	//don't overwrite if date grater
-	if (to_st.st_mtimespec.tv_sec > from_st.st_mtimespec.tv_sec)
+	if (to_st.st_mtim.tv_sec > from_st.st_mtim.tv_sec)
 		return 1;
 
 	//open streams
@@ -91,9 +91,9 @@ int k_lib_chWorkDir_copy_recursive(const char *source, const char *destination, 
 	struct dirent *entry;
 	DIR *dp;	
 
-	dp = opendir(dir);
+	dp = opendir(source);
 	if (dp == NULL){
-		sprintf(error, "Can't open directory: %s", dir);
+		sprintf(error, "Can't open directory: %s", source);
 		perror(error);
 		return ENOENT;
 	}	
@@ -149,13 +149,13 @@ int k_lib_chWorkDir(char *argv[]){
 				perror ("first readlink");
 				exit (EXIT_FAILURE);
 			};
-		execDir=dirname(selfpath);
+		char *execDir=dirname(selfpath);
 
 		char resourceDir[BUFSIZ];
 		sprintf(resourceDir, "%s/../share/%s", execDir, progname); //resources dir
 
 		//copy files from resources to workdir
-		int k_lib_chWorkDir_copy_recursive(resourceDir, workDir, 0);
+		int k_lib_chWorkDir_copy_recursive(resourceDir, workDir);
 		
 #endif
 	chdir(workDir); //change workdir
