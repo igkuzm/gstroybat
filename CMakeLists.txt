@@ -184,24 +184,21 @@ elseif (WIN32)
 	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -mwindows -Wl,-allow-multiple-definition -lstdc++")
 	
 	#Copy DLLs
+	file(GLOB EXE
+		"${WINAPI_WEBVIEW2}/MicrosoftEdgeWebview2Setup.exe"
+	)
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #64 bit	
 		file(GLOB DLLS 
 			"${WINAPI_GTK}/x64/*.dll"
 			"${WINAPI_WEBVIEW2}/x64/*.dll"
 			"${CMAKE_BINARY_DIR}/*.dll"
-			)	
-		file(GLOB EXE
-			"${WINAPI_WEBVIEW2}/x64/MicrosoftEdgeWebView2RuntimeInstaller.exe"
-			)
+		)	
 	elseif(CMAKE_SIZEOF_VOID_P EQUAL 4) #32 bit
 		file(GLOB DLLS 
 			"${WINAPI_GTK}/x86/*.dll"
 			"${WINAPI_WEBVIEW2}/x86/*.dll"
 			"${CMAKE_BINARY_DIR}/*.dll"
-			)	
-		file(GLOB EXE
-			"${WINAPI_WEBVIEW2}/x86/MicrosoftEdgeWebView2RuntimeInstaller.exe"
-			)		
+		)	
 	endif()	
 	install(FILES ${DLLS} DESTINATION bin)	
 	install(FILES ${RESOURCE_FILES} DESTINATION bin)	
@@ -226,7 +223,7 @@ elseif (WIN32)
 	set(CPACK_NSIS_HELP_LINK "ig.kuzm@gmail.com")
 	
 	set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-		ExecWait '\\\"$INSTDIR\\\\MicrosoftEdgeWebView2RuntimeInstaller.exe\\\" /install'\n		
+		ExecWait '\\\"$INSTDIR\\\\MicrosoftEdgeWebview2Setup.exe\\\" /install'\n		
 		CreateShortCut \\\"$DESKTOP\\\\${TARGET}.lnk\\\" \\\"$INSTDIR\\\\bin\\\\${TARGET}.exe\\\"
 	")
 
