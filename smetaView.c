@@ -2,7 +2,7 @@
  * File              : smetaView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 06.10.2022
+ * Last Modified Date: 07.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -66,16 +66,18 @@ void smeta_view_table_model_update(){
 void smeta_view_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *col, gpointer userdata){
 	g_print("Row activated\n");
 
+	GObject *app = userdata;
+
 	gtk_label_set_text(GTK_LABEL(materialsLabel), "Материалы:");	
 	gtk_label_set_text(GTK_LABEL(servicesLabel), "Работы:");	
 	gtk_label_set_text(GTK_LABEL(totalPriceLabel), "Итого:");	
 
-	selectedSmeta = NULL;
-	gtk_widget_set_sensitive(smetaEditButton, false);
-	gtk_widget_set_sensitive(smetaRemoveButton, false);
-	gtk_widget_set_sensitive(makeExcelButton, false);
-	gtk_widget_set_sensitive(materialAddButton, false);
-	gtk_widget_set_sensitive(serviceAddButton, false);	
+	g_object_set_data(app, "selectedSmeta", NULL);
+	gtk_widget_set_sensitive(smetaEditButton, FALSE);
+	gtk_widget_set_sensitive(smetaRemoveButton, FALSE);
+	gtk_widget_set_sensitive(makeExcelButton, FALSE);
+	gtk_widget_set_sensitive(materialAddButton, FALSE);
+	gtk_widget_set_sensitive(serviceAddButton, FALSE);	
 
 	GtkTreeModel *model = gtk_tree_view_get_model(treeview);
 	GtkTreeIter iter;
@@ -84,15 +86,16 @@ void smeta_view_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeV
 		StroybatSmeta *smeta;
 		gtk_tree_model_get(model, &iter, SMETA_POINTER, &smeta, -1); 
 		if (smeta) {
-			selectedSmeta = smeta;
+			g_object_set_data(app, "selectedSmeta", smeta);
+			g_print("selected smeta: %s\n", smeta->uuid);
 
-			table_model_update(smeta);
+			table_model_update(app, smeta);
 			
-			gtk_widget_set_sensitive(smetaEditButton, true);
-			gtk_widget_set_sensitive(smetaRemoveButton, true);
-			gtk_widget_set_sensitive(makeExcelButton, true);
-			gtk_widget_set_sensitive(materialAddButton, true);
-			gtk_widget_set_sensitive(serviceAddButton, true);
+			gtk_widget_set_sensitive(smetaEditButton, TRUE);
+			gtk_widget_set_sensitive(smetaRemoveButton, TRUE);
+			gtk_widget_set_sensitive(makeExcelButton, TRUE);
+			gtk_widget_set_sensitive(materialAddButton, TRUE);
+			gtk_widget_set_sensitive(serviceAddButton, TRUE);
 		
 			return;
 		} 
@@ -119,10 +122,12 @@ void smeta_view_search_changed(GtkWidget *widget, gpointer user_data){
 	}
 }
 
-void smeta_edit_button_pushed(GtkButton *button, gpointer user_data){
+void smeta_edit_button_pushed(GtkButton *button, gpointer userdata){
 	g_print("Edit button clicked\n");
-	if(selectedSmeta)
-		smeta_edit_new(selectedSmeta);
+	GObject *app = userdata;
+	StroybatSmeta * smeta = g_object_get_data(app, "selectedSmeta"); 
+	if(smeta)
+		smeta_edit_new(smeta);
 }
 
 void smeta_add_button_pushed(GtkButton *button, gpointer user_data){
@@ -135,14 +140,14 @@ void smeta_add_button_pushed(GtkButton *button, gpointer user_data){
 }
 
 
-GtkWidget *smeta_view_header(){
+GtkWidget *smeta_view_header(GObject *app){
 	GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 
 	smetaEditButton = gtk_button_new_with_label("прав.");
 	//gtk_box_append(GTK_BOX(header), smetaEditButton);	
 	gtk_container_add(GTK_CONTAINER(header), smetaEditButton);
-	gtk_widget_set_sensitive(smetaEditButton, false);
-	g_signal_connect(smetaEditButton, "clicked", (GCallback)smeta_edit_button_pushed, NULL);
+	gtk_widget_set_sensitive(smetaEditButton, FALSE);
+	g_signal_connect(smetaEditButton, "clicked", (GCallback)smeta_edit_button_pushed, app);
 	
 	GtkWidget * space = gtk_label_new("");
 	gtk_widget_set_hexpand(space, TRUE);
@@ -155,7 +160,7 @@ GtkWidget *smeta_view_header(){
 	g_signal_connect(smetaAddButton, "clicked", (GCallback)smeta_add_button_pushed, smetaViewStore);
 	
 	smetaRemoveButton = gtk_button_new_with_label("-");
-	gtk_widget_set_sensitive(smetaRemoveButton, false);
+	gtk_widget_set_sensitive(smetaRemoveButton, FALSE);
 	//gtk_box_append(GTK_BOX(header), smetaRemoveButton);	
 	gtk_container_add(GTK_CONTAINER(header), smetaRemoveButton);
 	//g_signal_connect(itemRemoveButton, "clicked", (GCallback)gstroybat_material_remove_button_pushed, store);
@@ -168,7 +173,7 @@ void smeta_view_search_init(){
 	g_signal_connect (smetaViewSearch, "insert-at-cursor", G_CALLBACK (smeta_view_search_changed), smetaViewStore);	
 }
 
-GtkWidget *smeta_view_new(){
+GtkWidget *smeta_view_new(GObject *app){
 	
 	smetaViewStore = smeta_view_table_model_new();
 	
@@ -178,7 +183,7 @@ GtkWidget *smeta_view_new(){
 	smeta_view_search_init();
 	
 	//gtk_box_append(GTK_BOX(box), smeta_view_header());	
-	gtk_container_add(GTK_CONTAINER(box), smeta_view_header());
+	gtk_container_add(GTK_CONTAINER(box), smeta_view_header(app));
 
 	//GtkWidget *window = gtk_scrolled_window_new();
 	GtkWidget *window = gtk_scrolled_window_new(NULL, NULL);
@@ -189,9 +194,10 @@ GtkWidget *smeta_view_new(){
 
 	smeta_view_table_model_update();
 
-	smetaView = gtk_tree_view_new_with_model(GTK_TREE_MODEL(smetaViewStore));
-	gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(smetaView), true);
-	g_signal_connect(smetaView, "row-activated", (GCallback) smeta_view_row_activated, smetaViewStore);
+	GtkWidget *smetaView = gtk_tree_view_new_with_model(GTK_TREE_MODEL(smetaViewStore));
+	gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(smetaView), TRUE);
+	g_object_set(smetaView, "activate_on_single_click", TRUE, NULL);	
+	g_signal_connect(smetaView, "row-activated", (GCallback) smeta_view_row_activated, app);
 
 	const char *column_titles[] = {"Список смет"};
 

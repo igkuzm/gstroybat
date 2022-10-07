@@ -2,7 +2,7 @@
  * File              : gstroybat.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 06.10.2022
+ * Last Modified Date: 07.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -23,16 +23,10 @@ extern "C" {
 //windows
 GtkWidget *mainWindow;
 
-//views
-GtkWidget *smetaView;
-
 //selections	
-StroybatSmeta * selectedSmeta;
-StroybatItem  * selectedMaterial;
-StroybatItem  * selectedService;
-int totalPriceMaterials;
-int totalPriceServices;
-int totalPrice;
+static int totalPriceMaterials;
+static int totalPriceServices;
+static int totalPrice;
 
 //buttons
 GtkWidget * smetaAddButton;
@@ -64,22 +58,22 @@ void gstroybat_application_on_deactivate (GtkWidget *widget, gpointer userData);
 void gstroybat_application_menu(GtkApplication *app);
 
 //smeta view
-GtkWidget *smeta_view_new();
+GtkWidget *smeta_view_new(GObject * app);
 void smeta_view_table_model_update();
-void table_model_update(StroybatSmeta *smeta);
+void table_model_update(GObject * app, StroybatSmeta *smeta);
 void store_add(GtkListStore *store, StroybatItem *item);
 
 //smeta edit
 void smeta_edit_new(StroybatSmeta *smeta);
 
 //materials view
-GtkWidget *materials_view_new();
+GtkWidget *materials_view_new(GObject * app);
 
 //services view
-GtkWidget *services_view_new();
+GtkWidget *services_view_new(GObject * app);
 
 //add items
-void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int datatype);
+void gstroybat_items_list_new(GObject * app, StroybatSmeta *smeta, GtkListStore *store, int datatype);
 
 //Yandex Disk
 void YDShow();
@@ -104,7 +98,7 @@ int init_database_callback(void *user_data, pthread_t threadid, char *msg){
 	return 0;
 }
 
-void make_excel();
+void make_excel(GtkButton *button, gpointer userdata);
 
 #ifdef __cplusplus
 }

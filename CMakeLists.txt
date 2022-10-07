@@ -181,7 +181,8 @@ if (APPLE)
 		COMPONENT Runtime
 	)
 elseif (WIN32)
-	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -mwindows -Wl,-allow-multiple-definition -lstdc++")
+	#SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -mwindows -Wl,-allow-multiple-definition -lstdc++")
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,-allow-multiple-definition -lstdc++")
 	
 	#Copy DLLs
 	file(GLOB EXE

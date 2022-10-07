@@ -2,16 +2,17 @@
  * File              : main.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 06.10.2022
+ * Last Modified Date: 07.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
+#include "getbundle.h"
 #include "gstroybat.h"
-#include "chworkdir.h"
 #include "openfile.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 int YD_callback(void *user_data, char *token, time_t expires, char *reftoken, char *error){
 	GtkApplication *app = user_data;
@@ -33,8 +34,38 @@ int YD_callback(void *user_data, char *token, time_t expires, char *reftoken, ch
 
 int main(int argc, char *argv[])
 {
+	//crete directory in home dir
+	char workdir[BUFSIZ];
+	sprintf(workdir, "%s/%s", g_get_home_dir(), "gstroybat");
+	g_mkdir_with_parents(workdir, 0755);
+	
+	//copy files from bundle
+	char *bundle = getbundle(argv);
+	if (!bundle){
+		printf("can't get application bundle\n");
+		return 1;
+	}
+	char *files[] = {"stroybat.db", "Template.xlsx"};
+	for (int i = 0; i < 2; ++i) {
+		char spath[BUFSIZ];
+		sprintf(spath, "%s/%s", bundle, files[i]);
+		GFile *sfile = g_file_new_for_path(spath);
+		
+		char dpath[BUFSIZ];
+		sprintf(dpath, "%s/%s", workdir, files[i]);
+		GFile *dfile = g_file_new_for_path(dpath);
+		
+		GError *error = NULL;
+		g_file_copy(sfile, dfile, 0, NULL, NULL, NULL, &error);
+		if (error)
+			printf("g_file_copy error: %s\n", error->message);
+	}
+
+	//free bundle var
+	free(bundle);
+
 	//chworkdir
-	k_lib_chWorkDir(argv);	
+	chdir(workdir);	
 
 	//get token
 	char token[64] = {0};
@@ -61,14 +92,16 @@ int main(int argc, char *argv[])
 	return g_application_run (G_APPLICATION (app), argc, argv);
 }
 
-void make_excel(){
+void make_excel(GtkButton *button, gpointer userdata){
 	g_print("Make excel document\n");
-	if (selectedSmeta) {
+	GObject *app = userdata;
+	StroybatSmeta * smeta = g_object_get_data(app, "selectedSmeta");	
+	if (smeta) {
 		GFile *template = g_file_new_for_path("Template.xlsx"); 
 		GFile *file = g_file_new_for_path("tmp.xlsx"); 
 		g_file_copy(template, file, G_FILE_COPY_OVERWRITE, NULL, NULL, NULL, NULL);
 		
-		stroybat_smeta_create_xlsx(DATABASE, selectedSmeta, "tmp.xlsx");
+		stroybat_smeta_create_xlsx(DATABASE, smeta, "tmp.xlsx");
 		openfile("tmp.xlsx");
 	} else {
 		g_print("Error to get smeta data!\n");

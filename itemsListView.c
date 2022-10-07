@@ -2,7 +2,7 @@
  * File              : itemsListView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 12.02.2022
- * Last Modified Date: 06.10.2022
+ * Last Modified Date: 07.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-GtkTreeStore *itemsListViewStore;
+static GtkTreeStore *itemsListViewStore;
 GtkWidget *treeView;
 int datatype;
 
@@ -86,6 +86,8 @@ void gstroybat_items_list_view_store_update(const char *search, GtkTreeStore *st
 
 void gstroybat_items_list_tree_view_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *col, gpointer userdata){
 	g_print("Row activated\n");
+	GObject *app = userdata;	
+	StroybatSmeta * smeta = g_object_get_data(app, "selectedSmeta");	
 
 	GtkTreeModel *model = gtk_tree_view_get_model(treeview);
 	GtkTreeIter iter;
@@ -95,15 +97,12 @@ void gstroybat_items_list_tree_view_row_activated(GtkTreeView *treeview, GtkTree
 		gtk_tree_model_get(model, &iter, ITEM_POINTER, &item, -1); 
 		if (item) {
 			if (item->id > 0) {
-				gtk_tree_view_expand_row(treeview, path, false);
+				gtk_tree_view_expand_row(treeview, path, FALSE);
 			} else {
-				StroybatSmeta *smeta = g_object_get_data(G_OBJECT(treeview), "StroybatSmeta");
-
+				g_print("Add item: %s for smeta: %s", item->uuid, smeta->uuid);
 				StroybatItem *newItem = stroybat_item_new(NULL, item->title, item->unit, item->price, 1, datatype);
-
-				
 				stroybat_smeta_add_item(DATABASE, smeta->uuid, newItem);
-				table_model_update(smeta);
+				table_model_update(app, smeta);
 			}
 
 		} else {
@@ -130,14 +129,15 @@ void gstroybat_smeta_items_list_changed(GtkWidget *widget, gpointer user_data){
 }
 
 
-void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int _datatype){
+void gstroybat_items_list_new(GObject * app, StroybatSmeta *smeta, GtkListStore *store, int _datatype){
+	g_print("Select items for smeta: %s", smeta->title);
 	datatype = _datatype;
 
 	itemsListViewStore = gstroybat_items_list_table_model_new();
 
 	//GtkWidget *win = gtk_window_new();
 	GtkWidget *win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_modal(GTK_WINDOW(win), true);
+	gtk_window_set_modal(GTK_WINDOW(win), TRUE);
 
 	char *title;
 	if (datatype == 0) {
@@ -174,10 +174,9 @@ void gstroybat_items_list_new(StroybatSmeta *smeta, GtkListStore *store, int _da
 	//gtk_tree_view_set_search_entry(GTK_TREE_VIEW(treeView), search);
 	//gtk_tree_view_set_enable_search(GTK_TREE_VIEW(treeView), true);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(treeView), GTK_TREE_MODEL(itemsListViewStore));
-	g_signal_connect(treeView, "row-activated", (GCallback) gstroybat_items_list_tree_view_row_activated, store);
+	g_signal_connect(treeView, "row-activated", (GCallback) gstroybat_items_list_tree_view_row_activated, app);
 	g_object_set_data(G_OBJECT(treeView), "itemsViewStore", store);
 	g_object_set_data(G_OBJECT(treeView), "StroybatSmeta", smeta);
-	g_object_set_data(G_OBJECT(treeView), "DATABASE", GINT_TO_POINTER(_datatype));
 
 	const char *column_titles[] = {"Наименование", "Ед. изм.", "Цена"};
 

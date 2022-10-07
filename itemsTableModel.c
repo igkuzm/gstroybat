@@ -2,7 +2,7 @@
  * File              : itemsTableModel.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 03.10.2022
- * Last Modified Date: 06.10.2022
+ * Last Modified Date: 07.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -36,19 +36,20 @@ void store_add(GtkListStore *store, StroybatItem *item){
 	-1);
 }
 
-int fill_table(StroybatItem *item, void *data, char *error){
+int fill_table(StroybatItem *item, void *userdata, char *error){
 	if (error) {
 		g_print("ERROR: %s\n", error);
 		return 0;
 	}
 
 	GtkListStore *store;
+	GObject *app = userdata;
 	if (item->id == STROYBAT_MATERIALS){
-		store = materialsViewStore;
+		store = g_object_get_data(app, "materialsViewStore");	
 		totalPriceMaterials += item->price * item->count;
 	}
 	if (item->id == STROYBAT_SERVICES){
-		store = servicesViewStore;
+		store = g_object_get_data(app, "servicesViewStore");	
 		totalPriceServices += item->price * item->count;
 	}	
 	
@@ -65,7 +66,11 @@ gboolean table_model_free(GtkTreeModel* model, GtkTreePath* path, GtkTreeIter* i
 	return false;
 }
 
-void table_model_update(StroybatSmeta *smeta){
+void table_model_update(GObject * app, StroybatSmeta *smeta){
+	g_print("Update table model for smeta: %s\n", smeta->uuid);
+	GtkListStore *materialsViewStore = g_object_get_data(app, "materialsViewStore");	
+	GtkListStore *servicesViewStore  = g_object_get_data(app, "servicesViewStore");	
+	
 	gtk_tree_model_foreach (GTK_TREE_MODEL(materialsViewStore), table_model_free, NULL);
 	gtk_list_store_clear(materialsViewStore);
 	
@@ -76,7 +81,7 @@ void table_model_update(StroybatSmeta *smeta){
 	totalPriceServices = 0;
 	totalPrice = 0;	
 
-	stroybat_smeta_items_get(DATABASE, smeta->uuid, NULL, fill_table);
+	stroybat_smeta_items_get(DATABASE, smeta->uuid, app, fill_table);
 
 	gtk_label_set_text(GTK_LABEL(materialsLabel), STR("Материалы: %d руб.", totalPriceMaterials));	
 	gtk_label_set_text(GTK_LABEL(servicesLabel), STR("Работы: %d руб.", totalPriceServices));	
@@ -86,16 +91,19 @@ void table_model_update(StroybatSmeta *smeta){
 void table_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *col, gpointer userdata){
 	g_print("Row activated\n");
 
-	STROYBAT_DATA_TYPE datatype = GPOINTER_TO_INT(userdata);
+	GObject *app = userdata;
+	StroybatSmeta * smeta = g_object_get_data(app, "selectedSmeta");	
+
+	STROYBAT_DATA_TYPE datatype = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(treeview), "datatype"));
 	printf("DATATYPE: %d\n", datatype);
 
 	if (datatype == STROYBAT_SERVICES){
-		selectedService = NULL;
-		gtk_widget_set_sensitive(serviceRemoveButton, false);
+		g_object_set_data(app, "selectedService", NULL);
+		gtk_widget_set_sensitive(serviceRemoveButton, FALSE);
 	}
 	if (datatype == STROYBAT_MATERIALS){
-		selectedMaterial = NULL;
-		gtk_widget_set_sensitive(materialRemoveButton, false);
+		g_object_set_data(app, "selectedMaterial", NULL);
+		gtk_widget_set_sensitive(materialRemoveButton, FALSE);
 	}				
 
 	GtkTreeModel *model;
@@ -109,12 +117,12 @@ void table_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewCo
 		
 		if (item){
 			if (datatype == STROYBAT_SERVICES){
-				selectedService = item;
-				gtk_widget_set_sensitive(serviceRemoveButton, true);
+				g_object_set_data(app, "selectedService", item);
+				gtk_widget_set_sensitive(serviceRemoveButton, TRUE);
 			}
 			if (datatype == STROYBAT_MATERIALS){
-				selectedMaterial = item;
-				gtk_widget_set_sensitive(materialRemoveButton, true);
+				g_object_set_data(app, "selectedMaterial", item);
+				gtk_widget_set_sensitive(materialRemoveButton, TRUE);
 			}			
 		}
 	}
@@ -213,11 +221,14 @@ void table_cell_edited_callback (GtkCellRendererText *cell, gchar *path_string, 
 	}
 }
 
-void ask_to_remove_item_responce(GtkDialog *dialog, gint arg1, gpointer user_data){
+void ask_to_remove_item_responce(GtkDialog *dialog, gint arg1, gpointer userdata){
 	if (arg1 == 1) {
 		g_print("Remove commited\n");
 
-		StroybatItem * item = user_data;
+		GObject *app = userdata;
+		StroybatSmeta * smeta = g_object_get_data(app, "selectedSmeta");		
+		StroybatItem * item = g_object_get_data(app, "itemToRemove");
+
 		if (!item){
 			g_print("Item is NULL\n");
 			/*gtk_window_destroy(GTK_WINDOW(dialog));*/
@@ -232,17 +243,18 @@ void ask_to_remove_item_responce(GtkDialog *dialog, gint arg1, gpointer user_dat
 			return;
 		}
 			
-		table_model_update(selectedSmeta);
+		table_model_update(app, smeta);
 	}
 	/*gtk_window_destroy(GTK_WINDOW(dialog));*/
 	gtk_widget_destroy(GTK_WIDGET(dialog));
 }
 
-void ask_to_remove_item(StroybatItem * item) {
+void ask_to_remove_item(GObject *app, StroybatItem * item) {
 	if (!item){
 		g_print("Item is NULL\n");
 		return;
 	}
+	g_object_set_data(app, "itemToRemove", item);
 	char *title;
 	if (item->id == STROYBAT_SERVICES)
 		title = STR("Удалить работу %s?", item->title);
@@ -258,11 +270,11 @@ void ask_to_remove_item(StroybatItem * item) {
 	gtk_dialog_add_button(GTK_DIALOG(dialog), "УДАЛИТЬ", 1);
 	gtk_dialog_add_button(GTK_DIALOG(dialog), "Отмена", 0);
 	gtk_dialog_set_default_response(GTK_DIALOG(dialog), 0);
-	g_signal_connect (dialog, "response", G_CALLBACK (ask_to_remove_item_responce), item);
+	g_signal_connect (dialog, "response", G_CALLBACK (ask_to_remove_item_responce), app);
 	gtk_widget_show(dialog);
 }
 
-GtkWidget *items_view_new(GtkWidget *header, GtkListStore *store, STROYBAT_DATA_TYPE datatype){
+GtkWidget *items_view_new(GtkWidget *header, GObject *app, GtkListStore *store,  STROYBAT_DATA_TYPE datatype){
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
 	
 	//add header	
@@ -280,7 +292,8 @@ GtkWidget *items_view_new(GtkWidget *header, GtkListStore *store, STROYBAT_DATA_
 	//create view
 	GtkWidget *view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
 	gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(view), true);
-	g_signal_connect(view, "row-activated", (GCallback) table_row_activated, GUINT_TO_POINTER(datatype));
+	g_object_set_data(G_OBJECT(view), "datatype", GUINT_TO_POINTER(datatype));
+	g_signal_connect(view, "row-activated", (GCallback) table_row_activated, app);
 	
 	const char *column_titles[] = {"Наименование", "Ед. изм.", "Цена", "Количество", "Сумма"};
 	int i;

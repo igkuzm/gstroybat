@@ -2,7 +2,7 @@
  * File              : mainWindow.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 04.10.2022
+ * Last Modified Date: 07.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -35,7 +35,7 @@ void gstroybat_application_on_activate (GtkApplication *app, gpointer user_data)
 	
 	//add smetaView to leftbox 
 	//gtk_box_append(GTK_BOX(leftbox), smeta_view_new());	
-	gtk_container_add(GTK_CONTAINER(leftbox), smeta_view_new());
+	gtk_container_add(GTK_CONTAINER(leftbox), smeta_view_new(G_OBJECT(app)));
 
 	//add bottom to leftbox
 	GtkWidget *lbottom = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
@@ -68,17 +68,17 @@ void gstroybat_application_on_activate (GtkApplication *app, gpointer user_data)
 	gtk_container_add(GTK_CONTAINER(rbottom), totalPriceLabel);
 	
 	makeExcelButton = gtk_button_new_with_label("Excel");
-	g_signal_connect(makeExcelButton, "clicked", (GCallback)make_excel, NULL);
+	g_signal_connect(makeExcelButton, "clicked", (GCallback)make_excel, app);
 	//gtk_box_append(GTK_BOX(rbottom), makeExcelButton);		
 	gtk_container_add(GTK_CONTAINER(rbottom), makeExcelButton);
 	
 	//add materialsView to top of split
 	//gtk_paned_set_start_child(GTK_PANED(vsplitter), materials_view_new());	
-	gtk_paned_pack1(GTK_PANED(vsplitter), materials_view_new(), true, true);
+	gtk_paned_pack1(GTK_PANED(vsplitter), materials_view_new(G_OBJECT(app)), true, true);
 
 	//add servicesView to bottom of split
 	//gtk_paned_set_end_child(GTK_PANED(vsplitter), services_view_new());	
-	gtk_paned_pack2(GTK_PANED(vsplitter), services_view_new(), true, true);
+	gtk_paned_pack2(GTK_PANED(vsplitter), services_view_new(G_OBJECT(app)), true, true);
 	
 	//show main window
 	//gtk_window_present (GTK_WINDOW (mainWindow));
