@@ -13,6 +13,9 @@ all:
 mac:
 	mkdir -p build && cd build && cmake .. && make install && cpack -G DragNDrop
 
+source:
+	mkdir -p build && cd build && cmake .. && make package_source
+
 win:
 	export PKG_CONFIG_PATH="/opt/GTK3SDK-mingw64/lib/pkgconfig" && mkdir -p build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../mingw.cmake .. && make && make package
 

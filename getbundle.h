@@ -43,7 +43,6 @@ extern "C"{
 #ifdef __APPLE__
 		char * executable = dirname((char *)argv[0]);
 		sprintf(bundle, "%s%s", executable, "/../Resources");
-		free(executable);
 		return bundle; 
 #else 
 		char selfpath[128];
@@ -56,8 +55,6 @@ extern "C"{
 		char *progname = basename(argv[0]);
 		
 		sprintf(bundle, "%s/../share/%s", executable, progname);		
-		free(progname);
-		free(executable);
 		return bundle; 
 #endif
 #endif
