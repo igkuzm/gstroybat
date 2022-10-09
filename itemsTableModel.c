@@ -84,8 +84,8 @@ void table_model_update(GObject * app, StroybatSmeta *smeta){
 	stroybat_smeta_items_get(DATABASE, smeta->uuid, app, fill_table);
 
 	gtk_label_set_text(GTK_LABEL(g_object_get_data(app, "materialsLabel")), STR("Материалы: %d руб.", totalPriceMaterials));	
-	gtk_label_set_text(GTK_LABEL(servicesLabel), STR("Работы: %d руб.", totalPriceServices));	
-	gtk_label_set_text(GTK_LABEL(totalPriceLabel), STR("Итого: %d руб.", totalPrice));	
+	gtk_label_set_text(GTK_LABEL(g_object_get_data(app, "servicesLabel")), STR("Работы: %d руб.", totalPriceServices));	
+	gtk_label_set_text(GTK_LABEL(g_object_get_data(app, "totalPriceLabel")), STR("Итого: %d руб.", totalPrice));	
 }
 
 void table_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewColumn *col, gpointer userdata){
@@ -99,11 +99,11 @@ void table_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewCo
 
 	if (datatype == STROYBAT_SERVICES){
 		g_object_set_data(app, "selectedService", NULL);
-		gtk_widget_set_sensitive(serviceRemoveButton, FALSE);
+		gtk_widget_set_sensitive(GTK_WIDGET(g_object_get_data(app, "serviceRemoveButton")), FALSE);		
 	}
 	if (datatype == STROYBAT_MATERIALS){
 		g_object_set_data(app, "selectedMaterial", NULL);
-		gtk_widget_set_sensitive(materialRemoveButton, FALSE);
+		gtk_widget_set_sensitive(GTK_WIDGET(g_object_get_data(app, "materialRemoveButton")), FALSE);		
 	}				
 
 	GtkTreeModel *model;
@@ -118,11 +118,11 @@ void table_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewCo
 		if (item){
 			if (datatype == STROYBAT_SERVICES){
 				g_object_set_data(app, "selectedService", item);
-				gtk_widget_set_sensitive(serviceRemoveButton, TRUE);
+				gtk_widget_set_sensitive(GTK_WIDGET(g_object_get_data(app, "serviceRemoveButton")), TRUE);
 			}
 			if (datatype == STROYBAT_MATERIALS){
 				g_object_set_data(app, "selectedMaterial", item);
-				gtk_widget_set_sensitive(materialRemoveButton, TRUE);
+				gtk_widget_set_sensitive(GTK_WIDGET(g_object_get_data(app, "materialRemoveButton")), TRUE);
 			}			
 		}
 	}
@@ -255,7 +255,7 @@ void ask_to_remove_item(GObject *app, StroybatItem * item) {
 		return;
 	}
 	g_object_set_data(app, "itemToRemove", item);
-	char *title;
+	char *title = "";
 	if (item->id == STROYBAT_SERVICES)
 		title = STR("Удалить работу %s?", item->title);
 	if (item->id == STROYBAT_MATERIALS)

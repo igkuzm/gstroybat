@@ -2,7 +2,7 @@
  * File              : mainWindow.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 07.10.2022
+ * Last Modified Date: 09.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -31,7 +31,8 @@ void gstroybat_application_on_activate (GtkApplication *app, gpointer user_data)
 	gtk_paned_pack1(GTK_PANED(hsplitter), leftbox, true, true);
 
 	//allocate searchview
-	smetaViewSearch = gtk_entry_new();
+	GtkWidget * smetaViewSearch = gtk_entry_new();
+	g_object_set_data(G_OBJECT(app), "smetaViewSearch", smetaViewSearch);
 	
 	//add smetaView to leftbox 
 	//gtk_box_append(GTK_BOX(leftbox), smeta_view_new());	
@@ -62,15 +63,17 @@ void gstroybat_application_on_activate (GtkApplication *app, gpointer user_data)
 	//gtk_box_append(GTK_BOX(rightbox), rbottom);	
 	gtk_container_add(GTK_CONTAINER(rightbox), rbottom);
 	
-	totalPriceLabel = gtk_label_new("Итого:");
+	GtkWidget * totalPriceLabel = gtk_label_new("Итого:");
 	gtk_widget_set_hexpand(totalPriceLabel, TRUE);
 	//gtk_box_append(GTK_BOX(rbottom), totalPriceLabel);	
 	gtk_container_add(GTK_CONTAINER(rbottom), totalPriceLabel);
+	g_object_set_data(G_OBJECT(app), "totalPriceLabel", totalPriceLabel);
 	
-	makeExcelButton = gtk_button_new_with_label("Excel");
+	GtkWidget * makeExcelButton = gtk_button_new_with_label("Excel");
 	g_signal_connect(makeExcelButton, "clicked", (GCallback)make_excel, app);
 	//gtk_box_append(GTK_BOX(rbottom), makeExcelButton);		
 	gtk_container_add(GTK_CONTAINER(rbottom), makeExcelButton);
+	g_object_set_data(G_OBJECT(app), "makeExcelButton", makeExcelButton);
 	
 	//add materialsView to top of split
 	//gtk_paned_set_start_child(GTK_PANED(vsplitter), materials_view_new());	

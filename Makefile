@@ -13,8 +13,10 @@ macTest:
 	mkdir -p build && cd build && cmake .. && make && echo "lldb ${PWD}/$(PROJECT_NAME).app/Contents/MacOS/$(PROJECT_NAME) -o 'r'">run && chmod +x run && open run
 
 mac:
-	export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig" && mkdir -p build_x86_64 && cd build_x86_64 && cmake .. -DCMAKE_TOOLCHAIN_FILE=../macos.cmake  -DCMAKE_OSX_ARCHITECTURES="x86_64" && make && cpack -G DragNDrop 
-	export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig" && mkdir -p build && cd build && cmake .. -DCMAKE_OSX_ARCHITECTURES="arm64" && make && cpack -G DragNDrop
+	export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig" && mkdir -p build && cd build && cmake .. -DCMAKE_OSX_ARCHITECTURES="arm64" && make && make install
+
+mac_x86_64:
+	export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig" && mkdir -p build && cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=../macos.cmake  -DCMAKE_OSX_ARCHITECTURES="x86_64" && make install 
 
 source:
 	mkdir -p build && cd build && cmake .. && make package_source
@@ -33,6 +35,5 @@ package:
 
 clean:
 	rm -fr build
-	rm -fr build_x86_64
 
 .Phony: mac package

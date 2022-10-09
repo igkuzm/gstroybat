@@ -30,31 +30,33 @@ void material_remove_button_pushed(GtkButton *button, gpointer userdata){
 	g_print("Remove button clicked\n");
 	GObject *app = userdata;
 	StroybatItem * item = g_object_get_data(app, "selectedMaterial");	
-	ask_to_remove_item(item);
+	ask_to_remove_item(app, item);
 }
 
 GtkWidget *materials_view_header(GObject *app){
 	GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 	
 	//title
-	GtkWidget *materialsLabel = gtk_label_new("Материалы:");
+	GtkWidget * materialsLabel = gtk_label_new("Материалы:");
 	gtk_widget_set_hexpand(materialsLabel, TRUE);
 	/*gtk_box_append(GTK_BOX(header), materialsLabel);	*/
 	gtk_container_add(GTK_CONTAINER(header), materialsLabel);
 	g_object_set_data(app, "materialsLabel", materialsLabel);
 
 	//add button
-	materialAddButton = gtk_button_new_with_label("+");
+	GtkWidget * materialAddButton = gtk_button_new_with_label("+");
 	g_signal_connect(materialAddButton, "clicked", (GCallback)material_add_button_pushed, app);
 	/*gtk_box_append(GTK_BOX(header), materialAddButton);		*/
 	gtk_container_add(GTK_CONTAINER(header), materialAddButton);
+	g_object_set_data(app, "materialAddButton", materialAddButton);
 	
 	//remove button
-	materialRemoveButton = gtk_button_new_with_label("-");
+	GtkWidget * materialRemoveButton = gtk_button_new_with_label("-");
 	gtk_widget_set_sensitive(materialRemoveButton, false);
 	g_signal_connect(materialRemoveButton, "clicked", (GCallback)material_remove_button_pushed, app);
 	/*gtk_box_append(GTK_BOX(header), materialRemoveButton);	*/
 	gtk_container_add(GTK_CONTAINER(header), materialRemoveButton);
+	g_object_set_data(app, "materialRemoveButton", materialRemoveButton);
 
 	return header;
 }

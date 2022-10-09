@@ -2,7 +2,7 @@
  * File              : itemsTableModel.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 03.10.2022
- * Last Modified Date: 07.10.2022
+ * Last Modified Date: 09.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -33,7 +33,7 @@ void table_cell_edited_callback (GtkCellRendererText *cell, gchar *path_string, 
 
 
 void ask_to_remove_item_responce(GtkDialog *dialog, gint arg1, gpointer user_data);
-void ask_to_remove_item();
+void ask_to_remove_item(GObject *app, StroybatItem * item);
 
 GtkWidget *items_view_new(GtkWidget *header, GObject *app, GtkListStore *store, STROYBAT_DATA_TYPE datatype);
 

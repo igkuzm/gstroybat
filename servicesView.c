@@ -2,7 +2,7 @@
  * File              : servicesView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 07.10.2022
+ * Last Modified Date: 09.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -30,30 +30,33 @@ void service_remove_button_pushed(GtkButton *button, gpointer userdata){
 	g_print("Remove button clicked\n");
 	GObject *app = userdata;
 	StroybatItem * item = g_object_get_data(app, "selectedService");	
-	ask_to_remove_item(item);
+	ask_to_remove_item(app, item);
 }
 
 GtkWidget *services_view_header(GObject *app){
 	GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 	
 	//title
-	servicesLabel = gtk_label_new("Работы:");
+	GtkWidget * servicesLabel = gtk_label_new("Работы:");
 	gtk_widget_set_hexpand(servicesLabel, TRUE);
 	//gtk_box_append(GTK_BOX(header), servicesLabel);	
 	gtk_container_add(GTK_CONTAINER(header), servicesLabel);
+	g_object_set_data(app, "servicesLabel", servicesLabel);
 
 	//add button
-	serviceAddButton = gtk_button_new_with_label("+");
+	GtkWidget * serviceAddButton = gtk_button_new_with_label("+");
 	g_signal_connect(serviceAddButton, "clicked", (GCallback)service_add_button_pushed, app);
 	//gtk_box_append(GTK_BOX(header), serviceAddButton);	
 	gtk_container_add(GTK_CONTAINER(header), serviceAddButton);
+	g_object_set_data(app, "serviceAddButton", serviceAddButton);
 
 	//remove button
-	serviceRemoveButton = gtk_button_new_with_label("-");
+	GtkWidget * serviceRemoveButton = gtk_button_new_with_label("-");
 	gtk_widget_set_sensitive(serviceRemoveButton, false);
 	g_signal_connect(serviceRemoveButton, "clicked", (GCallback)service_remove_button_pushed, app);
 	//gtk_box_append(GTK_BOX(header), serviceRemoveButton);	
 	gtk_container_add(GTK_CONTAINER(header), serviceRemoveButton);
+	g_object_set_data(app, "serviceRemoveButton", serviceRemoveButton);
 
 	return header;
 }

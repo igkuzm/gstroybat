@@ -28,25 +28,6 @@ static int totalPriceMaterials;
 static int totalPriceServices;
 static int totalPrice;
 
-//buttons
-GtkWidget * smetaAddButton;
-GtkWidget * smetaRemoveButton;
-GtkWidget * smetaEditButton;
-GtkWidget * materialAddButton;
-GtkWidget * materialRemoveButton;
-GtkWidget * serviceAddButton;
-GtkWidget * serviceRemoveButton;
-GtkWidget * makeExcelButton;
-
-//labels
-GtkWidget * servicesLabel;
-GtkWidget * totalPriceLabel;
-
-//serach
-GtkWidget * smetaViewSearch;
-char	  * smetaViewSearchString;
-
-
 //update
 static bool needToUpdate = false;
 static int init_database_callback(void *user_data, pthread_t threadid, char *msg);
@@ -58,7 +39,7 @@ void gstroybat_application_menu(GtkApplication *app);
 
 //smeta view
 GtkWidget *smeta_view_new(GObject * app);
-void smeta_view_table_model_update();
+void smeta_view_table_model_update(char * search);
 void table_model_update(GObject * app, StroybatSmeta *smeta);
 void store_add(GtkListStore *store, StroybatItem *item);
 
