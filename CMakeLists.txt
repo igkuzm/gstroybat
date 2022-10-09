@@ -18,6 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #Use pkg_config
 set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH ON)
 find_package(PkgConfig REQUIRED)
+#pkg_check_modules(GTK REQUIRED gtk+-2.0)
 pkg_check_modules(GTK REQUIRED gtk+-3.0)
 #pkg_check_modules(GTK REQUIRED gtk4)
 
@@ -99,13 +100,13 @@ target_link_directories(${TARGET} PRIVATE
 	${ADDDIRS}
 )
 
-include(InstallRequiredSystemLibraries)
+#include(InstallRequiredSystemLibraries)
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.md")
 set(CPACK_PACKAGE_FILE_NAME "${TARGET}-${VERSION}")
 
 if (APPLE)
-	SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.10")
-	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS}  -framework WebKit -ObjC -lstdc++")
+	SET(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS}  -framework WebKit -ObjC -lstdc++ ${ADDFLAGS}")
 
 	#add icons
 	target_sources(${TARGET} PRIVATE AppIcons/Assets.xcassets)
@@ -124,14 +125,13 @@ if (APPLE)
 		MACOSX_BUNDLE_BUNDLE_VERSION ${CMAKE_PROJECT_VERSION}
 		RESOURCE "${RESOURCE_FILES}"
 	)
-	
 
 	set(CPACK_DMG_SLA_USE_RESOURCE_FILE_LICENSE ${CPACK_RESOURCE_FILE_LICENSE})
 	set(CPACK_DMG_VOLUME_NAME ${TARGET})
 	#set(CPACK_DMG_FORMAT UDBZ)
 	#set(CPACK_DMG_DS_STORE_SETUP_SCRIPT "${CMAKE_SOURCE_DIR}/CMakeDMGSetup.scpt")
 	set (CPACK_DMG_BACKGROUND_IMAGE ${CMAKE_SOURCE_DIR}/AppIcons/CMakeDMGBackground.tif)
-	#set(CPACK_PACKAGE_EXECUTABLES "${TARGET}.app" "${TARGET}.app")
+	set(CPACK_PACKAGE_EXECUTABLES "${TARGET}" "${TARGET}")
 	#set (CPACK_CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/macInstallerFiles/DS_Store)
 
 	#generate icons, copy GTK libs to bundle and code sign
@@ -177,44 +177,52 @@ if (APPLE)
 				./codesign.sh
 			)		
 		" 
-		COMPONENT Runtime
+		COMPONENT application
 	)
+	INSTALL(TARGETS ${TARGET} RUNTIME DESTINATION ${CMAKE_BINARY_DIR} BUNDLE DESTINATION ${CMAKE_BINARY_DIR})
+	include(CPack)
 elseif (WIN32)
-	#SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -mwindows -Wl,-allow-multiple-definition -lstdc++")
-	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,-allow-multiple-definition -lstdc++")
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -mwindows -Wl,-allow-multiple-definition -lstdc++")
+	#SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -Wl,-allow-multiple-definition -lstdc++")
 	
 	#Copy DLLs
-	file(GLOB EXE
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #64 bit	
+		SET(ARCHDIR "x64")
+	elseif(CMAKE_SIZEOF_VOID_P EQUAL 4) #32 bit
+		SET(ARCHDIR "x86")
+	endif()	
+	
+	file(GLOB WebKitEngine
 		"${WINAPI_WEBVIEW2}/MicrosoftEdgeWebview2Setup.exe"
 	)
-	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #64 bit	
-		file(GLOB DLLS 
-			"${WINAPI_GTK}/x64/*.dll"
-			"${WINAPI_WEBVIEW2}/x64/*.dll"
-			"${CMAKE_BINARY_DIR}/*.dll"
-		)	
-	elseif(CMAKE_SIZEOF_VOID_P EQUAL 4) #32 bit
-		file(GLOB DLLS 
-			"${WINAPI_GTK}/x86/*.dll"
-			"${WINAPI_WEBVIEW2}/x86/*.dll"
-			"${CMAKE_BINARY_DIR}/*.dll"
-		)	
-	endif()	
-	install(FILES ${DLLS} DESTINATION bin)	
-	install(FILES ${RESOURCE_FILES} DESTINATION bin)	
-	install(FILES ${EXE} DESTINATION .)	
-	install(TARGETS ${TARGET} RUNTIME DESTINATION bin)
+	file(GLOB GTKAPI
+		"${WINAPI_GTK}/${ARCHDIR}/*.dll"
+	)
+	file(GLOB WEBVIEW2 
+		"${WINAPI_WEBVIEW2}/${ARCHDIR}/*.dll"
+	)
+	file(GLOB CURL 
+		"${CMAKE_BINARY_DIR}/*.dll"
+	)	
+
+	install(FILES ${WebKitEngine} DESTINATION . COMPONENT WebKitEngineInstaller)	
+	install(FILES ${GTKAPI} DESTINATION bin COMPONENT GTK3_runtime)	
+	install(FILES ${WEBVIEW2} DESTINATION bin COMPONENT WebView2_runtime)	
+	install(FILES ${CURL} DESTINATION bin COMPONENT libcurl_runtime)	
+	install(FILES ${RESOURCE_FILES} DESTINATION bin COMPONENT resources)	
+	install(TARGETS ${TARGET} RUNTIME DESTINATION bin COMPONENT gstroybat)
 	
 	set(CPACK_GENERATOR NSIS)
 	set(CPACK_PACKAGE_INSTALL_DIRECTORY "${TARGET}")
-	set (CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/AppIcons/icon.ico")
-	set (CPACK_NSIS_MUI_UNIICON  "${CMAKE_SOURCE_DIR}/AppIcons/icon.ico")
+	set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/AppIcons/icon.ico")
+	set(CPACK_NSIS_MUI_UNIICON  "${CMAKE_SOURCE_DIR}/AppIcons/icon.ico")
 	set(CPACK_NSIS_PACKAGE_NAME "${TARGET}")
 	set(CPACK_NSIS_DISPLAY_NAME "${TARGET}")
 	set(CPACK_NSIS_CONTACT "ig.kuzm@gmail.com")
 	set(CPACK_PACKAGE_EXECUTABLES "${TARGET}" "${TARGET}")
 	set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "${CMAKE_PROJECT_NAME}-${VERSION}")
 	set(CPACK_CREATE_DESKTOP_LINKS "${TARGET}")
+	set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL TRUE)
 
 	# Icon in the add/remove control panel. Must be an .exe file 
 	set(CPACK_NSIS_INSTALLED_ICON_NAME bin\\\\${TARGET}.exe)
@@ -230,6 +238,36 @@ elseif (WIN32)
 	set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
 		Delete \\\"$DESKTOP\\\\${TARGET}.lnk\\\"
 	")
+	include(CPack)
+	
+	cpack_add_component(WebKitEngineInstaller
+		DISPLAY_NAME  "WebKit Engine (Edge) Installer"
+		DESCRIPTION   "Need to instal for Windows 7 to Windows 10. No need to install for Windows 11"
+		GROUP WebView2
+	)
+	cpack_add_component(WebView2_runtime
+		DISPLAY_NAME  "WebView2 runtime libraries"
+		DESCRIPTION   "The Microsoft Edge WebView2 control allows you to embed web technologies (HTML, CSS, and JavaScript) in your native apps. The WebView2 control uses Microsoft Edge as the rendering engine to display the web content in native apps."
+		GROUP WebView2
+	)
+	cpack_add_component(GTK3_runtime
+		DISPLAY_NAME  "GTK+ runtime libraries"
+		DESCRIPTION   "GTK+ runtime libraries for Windows (version 3.24)"
+	)
+	cpack_add_component(libcurl_runtime
+		DISPLAY_NAME  "libcurl runtime libraries"
+		DESCRIPTION   "libcurl runtime libraries for Windows"
+	)
+	cpack_add_component(resources
+		DISPLAY_NAME  "Resource files for gstroybat"
+		DESCRIPTION   "database files, templates"
+	)
+	cpack_add_component(gstroybat
+		DISPLAY_NAME  "Application gstroybat"
+		DESCRIPTION   "Executable application gstroybat"
+		DEPENDS WebView2_runtime GTK3_runtime libcurl_runtime
+	)
+	
 else()
 	#Linux and Unix systems
 	if (NOT ANDROID)
@@ -237,6 +275,6 @@ else()
 	endif()	
 	install(TARGETS ${TARGET} RUNTIME DESTINATION bin)	
 	install(FILES ${RESOURCE_FILES} DESTINATION share/${TARGET})	
+	include(CPack)
 endif()
-include(CPack)
 

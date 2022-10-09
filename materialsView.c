@@ -2,7 +2,7 @@
  * File              : materialsView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 07.10.2022
+ * Last Modified Date: 09.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -37,10 +37,11 @@ GtkWidget *materials_view_header(GObject *app){
 	GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
 	
 	//title
-	materialsLabel = gtk_label_new("Материалы:");
+	GtkWidget *materialsLabel = gtk_label_new("Материалы:");
 	gtk_widget_set_hexpand(materialsLabel, TRUE);
 	/*gtk_box_append(GTK_BOX(header), materialsLabel);	*/
 	gtk_container_add(GTK_CONTAINER(header), materialsLabel);
+	g_object_set_data(app, "materialsLabel", materialsLabel);
 
 	//add button
 	materialAddButton = gtk_button_new_with_label("+");

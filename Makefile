@@ -1,17 +1,20 @@
 # File              : Makefile
 # Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
 # Date              : 06.12.2021
-# Last Modified Date: 07.10.2022
+# Last Modified Date: 09.10.2022
 # Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
 
 PWD=`pwd`
 PROJECT_NAME=gstroybat
 
-all:
+all: macTest
+
+macTest:
 	mkdir -p build && cd build && cmake .. && make && echo "lldb ${PWD}/$(PROJECT_NAME).app/Contents/MacOS/$(PROJECT_NAME) -o 'r'">run && chmod +x run && open run
 
 mac:
-	mkdir -p build && cd build && cmake .. && make install && cpack -G DragNDrop
+	export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig" && mkdir -p build_x86_64 && cd build_x86_64 && cmake .. -DCMAKE_TOOLCHAIN_FILE=../macos.cmake  -DCMAKE_OSX_ARCHITECTURES="x86_64" && make && cpack -G DragNDrop 
+	export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig" && mkdir -p build && cd build && cmake .. -DCMAKE_OSX_ARCHITECTURES="arm64" && make && cpack -G DragNDrop
 
 source:
 	mkdir -p build && cd build && cmake .. && make package_source
@@ -30,5 +33,6 @@ package:
 
 clean:
 	rm -fr build
+	rm -fr build_x86_64
 
 .Phony: mac package

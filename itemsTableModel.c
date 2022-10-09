@@ -2,7 +2,7 @@
  * File              : itemsTableModel.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 03.10.2022
- * Last Modified Date: 07.10.2022
+ * Last Modified Date: 09.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -83,7 +83,7 @@ void table_model_update(GObject * app, StroybatSmeta *smeta){
 
 	stroybat_smeta_items_get(DATABASE, smeta->uuid, app, fill_table);
 
-	gtk_label_set_text(GTK_LABEL(materialsLabel), STR("Материалы: %d руб.", totalPriceMaterials));	
+	gtk_label_set_text(GTK_LABEL(g_object_get_data(app, "materialsLabel")), STR("Материалы: %d руб.", totalPriceMaterials));	
 	gtk_label_set_text(GTK_LABEL(servicesLabel), STR("Работы: %d руб.", totalPriceServices));	
 	gtk_label_set_text(GTK_LABEL(totalPriceLabel), STR("Итого: %d руб.", totalPrice));	
 }

@@ -2,7 +2,7 @@
  * File              : main.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 07.10.2022
+ * Last Modified Date: 08.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 	g_signal_connect (app, "activate", G_CALLBACK (gstroybat_application_on_activate), NULL); 
 
 	//add Yandex Disk connection window (background) 
-	//YDConnect(app, YD_callback);
+	YDConnect(app, YD_callback);
 	
 	//run gtk
 	return g_application_run (G_APPLICATION (app), argc, argv);

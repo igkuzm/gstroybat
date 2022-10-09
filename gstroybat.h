@@ -2,7 +2,7 @@
  * File              : gstroybat.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 07.10.2022
+ * Last Modified Date: 09.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -39,7 +39,6 @@ GtkWidget * serviceRemoveButton;
 GtkWidget * makeExcelButton;
 
 //labels
-GtkWidget * materialsLabel;
 GtkWidget * servicesLabel;
 GtkWidget * totalPriceLabel;
 

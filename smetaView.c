@@ -2,7 +2,7 @@
  * File              : smetaView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 07.10.2022
+ * Last Modified Date: 09.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -67,8 +67,8 @@ void smeta_view_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeV
 	g_print("Row activated\n");
 
 	GObject *app = userdata;
-
-	gtk_label_set_text(GTK_LABEL(materialsLabel), "Материалы:");	
+	
+	gtk_label_set_text(GTK_LABEL(g_object_get_data(app, "materialsLabel")), "Материалы:");	
 	gtk_label_set_text(GTK_LABEL(servicesLabel), "Работы:");	
 	gtk_label_set_text(GTK_LABEL(totalPriceLabel), "Итого:");	
 
