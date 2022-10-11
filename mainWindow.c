@@ -2,7 +2,7 @@
  * File              : mainWindow.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 09.10.2022
+ * Last Modified Date: 11.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -15,10 +15,11 @@ void gstroybat_application_on_activate (GtkApplication *app, gpointer user_data)
 	gstroybat_application_menu(app);
 	
 	//add main window
-	mainWindow = gtk_application_window_new(app);
+	GtkWidget * mainWindow = gtk_application_window_new(app);
 	gtk_application_window_set_show_menubar (GTK_APPLICATION_WINDOW (mainWindow), TRUE);
 	g_signal_connect(G_OBJECT(mainWindow), "destroy", G_CALLBACK(gstroybat_application_on_deactivate), app); //quit application on window destroy
 	gtk_window_set_title(GTK_WINDOW(mainWindow), "Список смет");
+	g_object_set_data(G_OBJECT(app), "mainWindow", mainWindow);
 
 	//split window verticaly
 	GtkWidget *hsplitter = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);

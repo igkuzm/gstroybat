@@ -2,7 +2,7 @@
  * File              : smetaView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 09.10.2022
+ * Last Modified Date: 11.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -154,8 +154,8 @@ void ask_to_remove_smeta(GObject *app, StroybatSmeta * smeta) {
 		return;
 	}
 	char *title = STR("Удалить смету %s?", smeta->title);
-	GtkWidget *dialog;
-	dialog = gtk_message_dialog_new(GTK_WINDOW(mainWindow),
+	GtkWidget * mainWindow = g_object_get_data(app, "mainWindow"); 
+	GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(mainWindow),
 			GTK_DIALOG_MODAL,
 			GTK_MESSAGE_QUESTION,
 			GTK_BUTTONS_NONE,
