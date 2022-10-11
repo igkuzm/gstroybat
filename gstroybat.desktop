@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=0.1
+Name=GStroyBat
+Comment=Application to make smeta
+Exec=gstroybat %U
+Icon=gstroybat
+Terminal=false
+Type=Application
+Categories=Office
+MimeType=application/x-gstroybat-item;
+GenericName=GStroyBat
