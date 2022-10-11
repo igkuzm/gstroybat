@@ -278,7 +278,7 @@ else()
 	#icon and desktop file
 	INSTALL (FILES ${TARGET}.desktop DESTINATION /usr/share/applications/)
 	INSTALL (FILES ${TARGET}.xml DESTINATION /usr/share/applications/)
-	INSTALL (FILES AppIcon/${TARGET}.png DESTINATION /usr/share/icons/)
+	INSTALL (FILES AppIcons/${TARGET}.png DESTINATION /usr/share/icons/)
 	include(CPack)
 endif()
 
