@@ -2,7 +2,7 @@
  * File              : main.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 08.10.2022
+ * Last Modified Date: 12.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -47,13 +47,8 @@ int main(int argc, char *argv[])
 	}
 	char *files[] = {"stroybat.db", "Template.xlsx"};
 	for (int i = 0; i < 2; ++i) {
-		char spath[BUFSIZ];
-		sprintf(spath, "%s/%s", bundle, files[i]);
-		GFile *sfile = g_file_new_for_path(spath);
-		
-		char dpath[BUFSIZ];
-		sprintf(dpath, "%s/%s", workdir, files[i]);
-		GFile *dfile = g_file_new_for_path(dpath);
+		GFile *sfile = g_file_new_build_filename(bundle,  files[i], NULL);
+		GFile *dfile = g_file_new_build_filename(workdir, files[i], NULL);
 		
 		GError *error = NULL;
 		g_file_copy(sfile, dfile, 0, NULL, NULL, NULL, &error);
