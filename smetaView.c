@@ -178,6 +178,7 @@ void ask_to_remove_smeta(GObject *app, StroybatSmeta * smeta) {
 	//add cancel button
 	gtk_dialog_add_button(GTK_DIALOG(dialog), "Отмена", GTK_RESPONSE_CANCEL);
 	gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_CANCEL);
+
 	g_signal_connect (dialog, "response", G_CALLBACK (ask_to_remove_smeta_responce), app);
 
 	gtk_widget_show_all(dialog);
