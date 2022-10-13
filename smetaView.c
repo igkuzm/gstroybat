@@ -6,6 +6,7 @@
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
+#include "gtk/gtkcssprovider.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -132,8 +133,8 @@ void on_smeta_removed(GtkToast *toast, void * userdata){
 	smeta_view_table_model_update(NULL);	
 }
 
-void ask_to_remove_smeta_responce(GtkDialog *dialog, gint arg1, gpointer userdata){
-	if (arg1 == 1) {
+void ask_to_remove_smeta_responce(GtkDialog *dialog, gint responce, gpointer userdata){
+	if (responce == GTK_RESPONSE_DELETE_EVENT) {
 		g_print("Remove commited\n");
 
 		GObject *app = userdata;
@@ -159,7 +160,7 @@ void ask_to_remove_smeta(GObject *app, StroybatSmeta * smeta) {
 		g_print("Smeta is NULL\n");
 		return;
 	}
-	char *title = STR("Удалить смету %s?", smeta->title);
+	char *title = STR("Удалить смету: %s?", smeta->title);
 	GtkWidget * mainWindow = g_object_get_data(app, "mainWindow"); 
 	GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(mainWindow),
 			GTK_DIALOG_MODAL,
@@ -167,11 +168,19 @@ void ask_to_remove_smeta(GObject *app, StroybatSmeta * smeta) {
 			GTK_BUTTONS_NONE,
 			"%s", title);
 	gtk_window_set_title(GTK_WINDOW(dialog), "Удалить?");
-	gtk_dialog_add_button(GTK_DIALOG(dialog), "УДАЛИТЬ", 1);
-	gtk_dialog_add_button(GTK_DIALOG(dialog), "Отмена", 0);
-	gtk_dialog_set_default_response(GTK_DIALOG(dialog), 0);
+	
+	//add remove button
+	GtkWidget *button = gtk_button_new_with_label("УДАЛИТЬ");
+	GtkStyleContext *context = gtk_widget_get_style_context(button);
+	gtk_style_context_add_class(context, "destructive-action");
+	gtk_dialog_add_action_widget(GTK_DIALOG(dialog), button, GTK_RESPONSE_DELETE_EVENT);
+	
+	//add cancel button
+	gtk_dialog_add_button(GTK_DIALOG(dialog), "Отмена", GTK_RESPONSE_CANCEL);
+	gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_CANCEL);
 	g_signal_connect (dialog, "response", G_CALLBACK (ask_to_remove_smeta_responce), app);
-	gtk_widget_show(dialog);
+
+	gtk_widget_show_all(dialog);
 }
 
 void smeta_edit_button_pushed(GtkButton *button, gpointer userdata){

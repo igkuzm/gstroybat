@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
 		printf("can't get application bundle\n");
 		return 1;
 	}
-	char *files[] = {"stroybat.db", "Template.xlsx"};
-	for (int i = 0; i < 2; ++i) {
+	char *files[] = {"stroybat.db", "Template.xlsx", "gstroybat.png", "License.md", NULL};
+	for (int i = 0; files[i]; ++i) {
 		GFile *sfile = g_file_new_build_filename(bundle,  files[i], NULL);
 		GFile *dfile = g_file_new_build_filename(workdir, files[i], NULL);
 		

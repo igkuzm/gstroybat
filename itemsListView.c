@@ -152,6 +152,7 @@ void gstroybat_items_list_new(GObject * app, StroybatSmeta *smeta, GtkListStore 
 	}	
 
 	gtk_window_set_title(GTK_WINDOW(win), title);
+	gtk_window_set_position(GTK_WINDOW(win), GTK_WIN_POS_CENTER);
 
 	//window overlay
 	GtkWidget *overlay = gtk_overlay_new(); 

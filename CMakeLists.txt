@@ -55,6 +55,9 @@ add_subdirectory(${STROYBAT_SOURCE_DIR})
 set(RESOURCE_FILES 
 	stroybat/stroybat.db 
 	stroybat/Template.xlsx
+	AppIcons/gstroybat.png
+	AppIcons/AppIcon.png
+	License.md	
 )
 
 # SOURCES

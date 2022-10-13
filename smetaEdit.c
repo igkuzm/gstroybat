@@ -10,17 +10,6 @@
 
 #define STRTIME(time) ({char str[11]; struct tm *tm = localtime(&time); strftime(str, 11, "%d.%m.%Y", tm); str;})
 
-enum {
-  COLUMN_TITLE = 0,
-  COLUMN_DATE,
-  COLUMN_ZAKAZCHIK,
-  COLUMN_PODRIADCHIK,
-  COLUMN_OBIEKT,
-  COLUMN_RABOTI,
-  COLUMN_OSNOVANIYE,
-  N_COLUMNS
-};
-
 void smeta_edit_on_deactivate (GtkWidget *widget, gpointer user_data) {
 }
 
@@ -79,18 +68,11 @@ GtkWidget * smeta_edit_widget(
 	GtkWidget *entry = gtk_entry_new();
 	g_object_set_data(G_OBJECT(entry), "key", (void *)key);
 	gtk_entry_set_placeholder_text(GTK_ENTRY(entry), description);
-	GtkEntryBuffer * buf = gtk_entry_get_buffer(GTK_ENTRY(entry));
-	gtk_entry_buffer_set_text(GTK_ENTRY_BUFFER(buf), value, strlen(value));
+	GtkEntryBuffer * buf = gtk_entry_buffer_new(value, strlen(value));
+	gtk_entry_set_buffer(GTK_ENTRY(entry), GTK_ENTRY_BUFFER(buf));
 	g_signal_connect (entry, "changed", G_CALLBACK (smeta_edit_changed), smeta);
-	/*g_signal_connect (entry, "insert-at-cursor", G_CALLBACK (smeta_view_search_changed), store);	*/
-
 	/*gtk_box_append(GTK_BOX(box), entry);*/
 	gtk_container_add(GTK_CONTAINER(box), entry);
-
-	//space
-	/*GtkWidget * space = gtk_label_new("");*/
-	/*gtk_widget_set_hexpand(space, TRUE);*/
-	/*gtk_box_append(GTK_BOX(box), space);		*/
 
 	//add description label
 	GtkWidget *label = gtk_label_new(description);
@@ -115,10 +97,10 @@ void smeta_edit_new(StroybatSmeta *smeta){
 	gtk_container_add(GTK_CONTAINER(win), box);
 	
 	//add widgets
-	const char *titles[] = {"Наименование", "Дата", "Заказчик", "Подрядчик", "Объект", "Работы", "Основание"};
+	const char *titles[] = {"Наименование", "Дата", "Заказчик", "Подрядчик", "Объект", "Работы", "Основание", NULL};
 	const char *values[] = {smeta->title, STRTIME(smeta->date), smeta->zakazchik, smeta->podriadchik, smeta->obiekt, smeta->raboti, smeta->osnovaniye};
 	const char *keys[]   = {"title", "date", "zakazchik", "podriadchik", "obiekt", "raboti", "osnovanie"};
-	for (int i = 0; i < N_COLUMNS; ++i) {
+	for (int i = 0; titles[i]; ++i) {
 		GtkWidget *widget = smeta_edit_widget(smeta, values[i], keys[i], titles[i]);
 		/*gtk_box_append(GTK_BOX(box), widget);*/
 		gtk_container_add(GTK_CONTAINER(box), widget);
