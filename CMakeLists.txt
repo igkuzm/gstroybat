@@ -68,6 +68,8 @@ add_executable(${TARGET}
 	itemsListView.c 
 	itemsTableModel.c
 	mainMenu.c
+	config.c
+	toast.c
 	YDConnect.cc
 	${ADDSRC}
 	${RESOURCE_FILES}

@@ -2,15 +2,13 @@
  * File              : smetaEdit.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 09.10.2022
+ * Last Modified Date: 13.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
 #include <time.h>
 
-#define STR(...) ({char str[BUFSIZ]; sprintf(str, __VA_ARGS__); str;})
 #define STRTIME(time) ({char str[11]; struct tm *tm = localtime(&time); strftime(str, 11, "%d.%m.%Y", tm); str;})
-#define STRINT(n) ({char str[16]; sprintf(str, "%d", n); str;})
 
 enum {
   COLUMN_TITLE = 0,

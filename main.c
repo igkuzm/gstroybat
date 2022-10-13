@@ -2,10 +2,11 @@
  * File              : main.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 12.10.2022
+ * Last Modified Date: 13.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
+#include "toast.h"
 #include "getbundle.h"
 #include "gstroybat.h"
 #include "openfile.h"
@@ -15,17 +16,14 @@
 #include <unistd.h>
 
 int YD_callback(void *user_data, char *token, time_t expires, char *reftoken, char *error){
-	GtkApplication *app = user_data;
+	GObject *app = user_data;
 	if (token){
 		g_print("TOKEN: %s", token);
 		
-		GKeyFile *key_file = g_key_file_new ();
-		g_key_file_set_value(key_file, "stroybat", "YDToken", token);
-		g_key_file_save_to_file(key_file, "stroybat.ini", NULL);
+		save_token_to_config(token, expires, reftoken);
+		GtkToast * toast = g_object_get_data(app, "mainWindow_toast");
+		gtk_toast_show_message(toast, "Yandex Disk подключен", 3, NULL, NULL, NULL, NULL);		
 
-		GtkWidget *dialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, "Yandex Disk подключен");
-		gtk_widget_show(dialog);
-		
 		/*needToUpdate = true;*/
 		/*stroybat_init(DATABASE, token, NULL, init_database_callback);*/
 	}
@@ -63,14 +61,7 @@ int main(int argc, char *argv[])
 	chdir(workdir);	
 
 	//get token
-	char token[64] = {0};
-	GKeyFile *key_file = g_key_file_new ();
-	if (g_key_file_load_from_file(key_file, "stroybat.ini", 0, NULL)){
-		gchar * _token = g_key_file_get_value(key_file, "stroybat", "YDToken", NULL);
-		strncpy(token, _token, 63);
-		token[63] = 0;
-	}
-
+	char * token = token_from_config();
 	printf("init with token: %s\n", token);
 
 	//init database
@@ -92,6 +83,9 @@ void make_excel(GtkButton *button, gpointer userdata){
 	GObject *app = userdata;
 	StroybatSmeta * smeta = g_object_get_data(app, "selectedSmeta");	
 	if (smeta) {
+		GtkToast * toast = g_object_get_data(app, "mainWindow_toast");
+		gtk_toast_show_message(toast, STR("Открываем EXCEL таблицу для %s", smeta->title), 3, NULL, NULL, NULL, NULL);
+
 		GFile *template = g_file_new_for_path("Template.xlsx"); 
 		GFile *file = g_file_new_for_path("tmp.xlsx"); 
 		g_file_copy(template, file, G_FILE_COPY_OVERWRITE, NULL, NULL, NULL, NULL);

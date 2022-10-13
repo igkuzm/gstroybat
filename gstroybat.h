@@ -2,7 +2,7 @@
  * File              : gstroybat.h
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 11.10.2022
+ * Last Modified Date: 13.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -13,12 +13,22 @@
 #include <stdio.h>
 #include "stroybat/libstroybat.h"
 #include <stdbool.h>
+#include "toast.h"
 	
 #define DATABASE "stroybat.db"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define STR(...) ({char str[BUFSIZ]; sprintf(str, __VA_ARGS__); str;})
+
+//config
+void save_window_state (GtkWidget *widget, GtkAllocation *allocation, gpointer userdata);
+void window_save_state_to_config(const char * window_name, int x, int y, int width, int height);
+void window_restore_state_from_config(GtkWindow * window, const char * window_name, int default_width, int default_height);
+void save_token_to_config(const char * token, time_t expires, const char * reftoken);
+char * token_from_config();
 
 //selections	
 static int totalPriceMaterials;
@@ -76,6 +86,8 @@ int init_database_callback(void *user_data, pthread_t threadid, char *msg){
 }
 
 void make_excel(GtkButton *button, gpointer userdata);
+
+void notification(GtkButton *button, gpointer userdata);
 
 #ifdef __cplusplus
 }

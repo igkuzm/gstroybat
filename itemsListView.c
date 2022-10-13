@@ -2,7 +2,7 @@
  * File              : itemsListView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 12.02.2022
- * Last Modified Date: 07.10.2022
+ * Last Modified Date: 13.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -99,6 +99,8 @@ void gstroybat_items_list_tree_view_row_activated(GtkTreeView *treeview, GtkTree
 			if (item->id > 0) {
 				gtk_tree_view_expand_row(treeview, path, FALSE);
 			} else {
+				GtkToast * toast = g_object_get_data(app, "itemsList_toast");
+				gtk_toast_show_message(toast, STR("Добавлено: %s в смету: %s", item->title, smeta->title), 3, NULL, NULL, NULL, NULL);				
 				g_print("Add item: %s for smeta: %s", item->uuid, smeta->uuid);
 				StroybatItem *newItem = stroybat_item_new(NULL, item->title, item->unit, item->price, 1, datatype);
 				stroybat_smeta_add_item(DATABASE, smeta->uuid, newItem);
@@ -138,6 +140,8 @@ void gstroybat_items_list_new(GObject * app, StroybatSmeta *smeta, GtkListStore 
 	//GtkWidget *win = gtk_window_new();
 	GtkWidget *win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_modal(GTK_WINDOW(win), TRUE);
+	window_restore_state_from_config(GTK_WINDOW(win), "itemsList", 600, 400);
+	g_signal_connect(G_OBJECT(win), "size-allocate", G_CALLBACK(save_window_state), "itemsList"); //save window state
 
 	char *title;
 	if (datatype == 0) {
@@ -149,9 +153,14 @@ void gstroybat_items_list_new(GObject * app, StroybatSmeta *smeta, GtkListStore 
 
 	gtk_window_set_title(GTK_WINDOW(win), title);
 
+	//window overlay
+	GtkWidget *overlay = gtk_overlay_new(); 
+	gtk_container_add (GTK_CONTAINER (win), overlay);	
+
 	GtkWidget *winbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
 	//gtk_window_set_child(GTK_WINDOW(win), winbox);
-	gtk_container_add(GTK_CONTAINER(win), winbox);
+	gtk_container_add(GTK_CONTAINER(overlay), winbox);
+	//gtk_container_add(GTK_CONTAINER(win), winbox);
 
 	GtkWidget *search = gtk_entry_new();
 	gtk_entry_set_placeholder_text(GTK_ENTRY(search), "Поиск: название");
@@ -207,6 +216,11 @@ void gstroybat_items_list_new(GObject * app, StroybatSmeta *smeta, GtkListStore 
 	gtk_container_add(GTK_CONTAINER(scrolledWindow), treeView);
 
 	gstroybat_items_list_view_store_update(NULL, itemsListViewStore, datatype);
+
+	//add notification toast
+	GtkWidget * toast = gtk_toast_new(); 
+	gtk_overlay_add_overlay(GTK_OVERLAY(overlay), toast);
+	g_object_set_data(G_OBJECT(app), "itemsList_toast", toast);	
 
 	//gtk_widget_show(win);
 	gtk_widget_show_all(win);

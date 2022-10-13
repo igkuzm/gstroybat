@@ -2,7 +2,7 @@
  * File              : smetaView.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 11.02.2022
- * Last Modified Date: 11.10.2022
+ * Last Modified Date: 13.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 #include "gstroybat.h"
@@ -12,8 +12,6 @@
 #include <string.h>
 #include <time.h>
 #include <gio/gio.h>
-
-#define STR(...) ({char str[BUFSIZ]; sprintf(str, __VA_ARGS__); str;})
 
 GtkListStore *smetaViewStore;
 
@@ -121,6 +119,19 @@ void smeta_view_search_changed(GtkWidget *widget, gpointer user_data){
 	}
 }
 
+void on_smeta_remove_canceled(GtkToast *toast, void * cancel_data){
+}
+
+void on_smeta_removed(GtkToast *toast, void * userdata){
+	StroybatSmeta * smeta = userdata;		
+	if (stroybat_smeta_remove_all(DATABASE, smeta->uuid)){
+		g_print("Error to remove Item!\n");
+		return;
+	}
+		
+	smeta_view_table_model_update(NULL);	
+}
+
 void ask_to_remove_smeta_responce(GtkDialog *dialog, gint arg1, gpointer userdata){
 	if (arg1 == 1) {
 		g_print("Remove commited\n");
@@ -135,14 +146,9 @@ void ask_to_remove_smeta_responce(GtkDialog *dialog, gint arg1, gpointer userdat
 			return;
 		}		
 		
-		if (stroybat_smeta_remove_all(DATABASE, smeta->uuid)){
-			g_print("Error to remove Item!\n");
-			/*gtk_window_destroy(GTK_WINDOW(dialog));*/
-			gtk_widget_destroy(GTK_WIDGET(dialog));
-			return;
-		}
-			
-		smeta_view_table_model_update(NULL);	
+		GtkToast * toast = g_object_get_data(app, "mainWindow_toast");
+		gtk_toast_show_message(toast, STR("Удаление %s", smeta->title), 3, NULL, on_smeta_remove_canceled, smeta, on_smeta_removed);	
+		gtk_widget_destroy(GTK_WIDGET(dialog));
 	}
 	/*gtk_window_destroy(GTK_WINDOW(dialog));*/
 	gtk_widget_destroy(GTK_WIDGET(dialog));

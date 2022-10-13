@@ -2,7 +2,7 @@
  * File              : YDConnect.cc
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 01.10.2022
- * Last Modified Date: 02.10.2022
+ * Last Modified Date: 13.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -15,8 +15,6 @@
 #include <string.h>
 #include <pthread.h>
 #include <unistd.h>
-
-#define STR(...) ({char str[BUFSIZ]; sprintf(str, __VA_ARGS__); str;})
 
 webview_t w;
 

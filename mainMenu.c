@@ -2,7 +2,7 @@
  * File              : mainMenu.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 15.03.2022
- * Last Modified Date: 07.10.2022
+ * Last Modified Date: 13.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -15,7 +15,9 @@ static void gstroybat_app_menu_yd_cb (GSimpleAction *action, GVariant *parameter
 
 static void gstroybat_app_menu_excel_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
-	make_excel(NULL, user_data);
+	GObject *app = user_data;
+	GtkButton * makeExcelButton = g_object_get_data(app, "makeExcelButton"); 
+	make_excel(makeExcelButton, user_data);
 }
 
 static void gstroybat_app_menu_preferences_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)

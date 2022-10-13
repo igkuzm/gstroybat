@@ -2,29 +2,34 @@
  * File              : mainWindow.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 11.10.2022
+ * Last Modified Date: 13.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
 #include "gstroybat.h"
 
-
 void gstroybat_application_on_activate (GtkApplication *app, gpointer user_data) {
 
 	//add main menu
 	gstroybat_application_menu(app);
-	
+
 	//add main window
 	GtkWidget * mainWindow = gtk_application_window_new(app);
 	gtk_application_window_set_show_menubar (GTK_APPLICATION_WINDOW (mainWindow), TRUE);
 	g_signal_connect(G_OBJECT(mainWindow), "destroy", G_CALLBACK(gstroybat_application_on_deactivate), app); //quit application on window destroy
-	gtk_window_set_title(GTK_WINDOW(mainWindow), "Список смет");
+	window_restore_state_from_config(GTK_WINDOW(mainWindow), "mainWindow", 1200, 680);
+	g_signal_connect(G_OBJECT(mainWindow), "size-allocate", G_CALLBACK(save_window_state), "mainWindow"); //save window state
+	gtk_window_set_title(GTK_WINDOW(mainWindow), "GStroyBat: Список смет");
 	g_object_set_data(G_OBJECT(app), "mainWindow", mainWindow);
+
+	//main window overlay
+	GtkWidget *overlay = gtk_overlay_new(); 
+	gtk_container_add (GTK_CONTAINER (mainWindow), overlay);
 
 	//split window verticaly
 	GtkWidget *hsplitter = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
 	//gtk_window_set_child(GTK_WINDOW(mainWindow), hsplitter);
-	gtk_container_add(GTK_CONTAINER(mainWindow), hsplitter);
+	gtk_overlay_add_overlay(GTK_OVERLAY(overlay), hsplitter);
 
 	//add box to left
 	GtkWidget *leftbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
@@ -76,21 +81,25 @@ void gstroybat_application_on_activate (GtkApplication *app, gpointer user_data)
 	gtk_container_add(GTK_CONTAINER(rbottom), makeExcelButton);
 	g_object_set_data(G_OBJECT(app), "makeExcelButton", makeExcelButton);
 	
-	//add materialsView to top of split
-	//gtk_paned_set_start_child(GTK_PANED(vsplitter), materials_view_new());	
-	gtk_paned_pack1(GTK_PANED(vsplitter), materials_view_new(G_OBJECT(app)), true, true);
-
-	//add servicesView to bottom of split
+	//add servicesView to top of split
 	//gtk_paned_set_end_child(GTK_PANED(vsplitter), services_view_new());	
-	gtk_paned_pack2(GTK_PANED(vsplitter), services_view_new(G_OBJECT(app)), true, true);
+	gtk_paned_pack1(GTK_PANED(vsplitter), services_view_new(G_OBJECT(app)), true, true);
+	
+	//add materialsView to bottom of split
+	//gtk_paned_set_start_child(GTK_PANED(vsplitter), materials_view_new());	
+	gtk_paned_pack2(GTK_PANED(vsplitter), materials_view_new(G_OBJECT(app)), true, true);
+
+	//add notification toast
+	GtkWidget * toast = gtk_toast_new(); 
+	gtk_overlay_add_overlay(GTK_OVERLAY(overlay), toast);
+	g_object_set_data(G_OBJECT(app), "mainWindow_toast", toast);
 	
 	//show main window
 	//gtk_window_present (GTK_WINDOW (mainWindow));
 	gtk_widget_show_all(mainWindow);
-
 }
 
-void gstroybat_application_on_deactivate (GtkWidget *widget, gpointer userData) {
-    g_application_quit (userData);
+void gstroybat_application_on_deactivate (GtkWidget *window, gpointer userdata) {
+	g_application_quit (userdata);
 }
 

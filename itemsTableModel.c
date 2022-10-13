@@ -2,13 +2,11 @@
  * File              : itemsTableModel.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 03.10.2022
- * Last Modified Date: 11.10.2022
+ * Last Modified Date: 13.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
 #include "itemsTableModel.h"
-
-#define STR(...) ({char str[BUFSIZ]; sprintf(str, __VA_ARGS__); str;})
 
 GtkListStore *table_model_new(){
 	GtkListStore *store = gtk_list_store_new(N_COLUMNS, 
@@ -131,6 +129,9 @@ void table_row_activated(GtkTreeView *treeview, GtkTreePath *path, GtkTreeViewCo
 void table_cell_edited_callback (GtkCellRendererText *cell, gchar *path_string, gchar *new_text, gpointer user_data){
 	guint column_number = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(cell), "column_number"));
 	g_print("EDITED path: %s, col: %d\n", path_string, column_number);
+	
+	//get application delegate
+	GObject *app = g_object_get_data(G_OBJECT(cell), "app");
 
 	// we HAVE TO use GtkTreeView within gpointer!
 	//  otherwise we could not differntiate the model type!
@@ -200,7 +201,24 @@ void table_cell_edited_callback (GtkCellRendererText *cell, gchar *path_string, 
 				if (err){
 					g_print("Error to change item price! Err: %d\n", err);
 				} else {
+					//count new total price
+					totalPrice -= item->price * item->count;
+					totalPrice += price * item->count;
+					gtk_label_set_text(GTK_LABEL(g_object_get_data(app, "totalPriceLabel")), STR("Итого: %d руб.", totalPrice));	
+					//count new material price
+					if (item->id == STROYBAT_MATERIALS){
+						totalPriceMaterials -= item->price * item->count;
+						totalPriceMaterials += price * item->count;
+						gtk_label_set_text(GTK_LABEL(g_object_get_data(app, "materialsLabel")), STR("Материалы: %d руб.", totalPriceMaterials));	
+					}
+					//count new service price
+					if (item->id == STROYBAT_SERVICES){
+						totalPriceServices -= item->price * item->count;
+						totalPriceServices += price * item->count;
+						gtk_label_set_text(GTK_LABEL(g_object_get_data(app, "servicesLabel")), STR("Работы: %d руб.", totalPriceServices));	
+					}
 					gtk_list_store_set(GTK_LIST_STORE(model), &iter_rawModel, column_number, price, COLUMN_TOTAL, price * item->count, -1);
+					item->price = price;
 				} 
 				break;
 			}			
@@ -213,12 +231,45 @@ void table_cell_edited_callback (GtkCellRendererText *cell, gchar *path_string, 
 				if (err){
 					g_print("Error to change item price! Err: %d\n", err);
 				} else {
+					//count new total price
+					totalPrice -= item->price * item->count;
+					totalPrice += item->price * count;
+					gtk_label_set_text(GTK_LABEL(g_object_get_data(app, "totalPriceLabel")), STR("Итого: %d руб.", totalPrice));	
+					//count new material price
+					if (item->id == STROYBAT_MATERIALS){
+						totalPriceMaterials -= item->price * item->count;
+						totalPriceMaterials += item->price * count;
+						gtk_label_set_text(GTK_LABEL(g_object_get_data(app, "materialsLabel")), STR("Материалы: %d руб.", totalPriceMaterials));	
+					}
+					//count new service price
+					if (item->id == STROYBAT_SERVICES){
+						totalPriceServices -= item->price * item->count;
+						totalPriceServices += item->price * count;
+						gtk_label_set_text(GTK_LABEL(g_object_get_data(app, "servicesLabel")), STR("Работы: %d руб.", totalPriceServices));	
+					}					
 					gtk_list_store_set(GTK_LIST_STORE(model), &iter_rawModel, column_number, count, COLUMN_TOTAL, count * item->price, -1);
+					item->count = count;
 				} 
 				break;
 			}			
 		default: break;
 	}
+}
+
+void on_item_remove_canceled(GtkToast *toast, void * cancel_data){
+}
+
+void on_item_removed(GtkToast *toast, void * userdata){
+	GObject *app = userdata;
+	StroybatSmeta * smeta = g_object_get_data(app, "selectedSmeta");		
+	StroybatItem  * item  = g_object_get_data(app, "itemToRemove");
+
+	if (stroybat_smeta_remove_item(DATABASE, item->uuid)){
+		g_print("Error to remove Item!\n");
+		return;
+	}
+		
+	table_model_update(app, smeta);
 }
 
 void ask_to_remove_item_responce(GtkDialog *dialog, gint arg1, gpointer userdata){
@@ -227,7 +278,7 @@ void ask_to_remove_item_responce(GtkDialog *dialog, gint arg1, gpointer userdata
 
 		GObject *app = userdata;
 		StroybatSmeta * smeta = g_object_get_data(app, "selectedSmeta");		
-		StroybatItem * item = g_object_get_data(app, "itemToRemove");
+		StroybatItem  * item  = g_object_get_data(app, "itemToRemove");
 
 		if (!item){
 			g_print("Item is NULL\n");
@@ -236,14 +287,8 @@ void ask_to_remove_item_responce(GtkDialog *dialog, gint arg1, gpointer userdata
 			return;
 		}		
 		
-		if (stroybat_smeta_remove_item(DATABASE, item->uuid)){
-			g_print("Error to remove Item!\n");
-			/*gtk_window_destroy(GTK_WINDOW(dialog));*/
-			gtk_widget_destroy(GTK_WIDGET(dialog));
-			return;
-		}
-			
-		table_model_update(app, smeta);
+		GtkToast * toast = g_object_get_data(app, "mainWindow_toast");
+		gtk_toast_show_message(toast, STR("Удаление %s", item->title), 3, NULL, on_item_remove_canceled, app, on_item_removed);	
 	}
 	/*gtk_window_destroy(GTK_WINDOW(dialog));*/
 	gtk_widget_destroy(GTK_WIDGET(dialog));
@@ -305,6 +350,7 @@ GtkWidget *items_view_new(GtkWidget *header, GObject *app, GtkListStore *store, 
 		g_object_set(renderer, "wrap-width", 60, NULL);	
 		g_signal_connect(renderer, "edited", (GCallback) table_cell_edited_callback, view);
 		g_object_set_data(G_OBJECT(renderer), "column_number", GUINT_TO_POINTER(i));
+		g_object_set_data(G_OBJECT(renderer), "app", app);
 		
 		GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes(column_titles[i], renderer, "text", i,  NULL);
 		switch (i) {
