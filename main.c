@@ -52,18 +52,11 @@ int main(int argc, char *argv[])
 	setenv("GDK_PIXBUF_MODULEDIR",   loaders_dir,   true);
 	setenv("GDK_PIXBUF_MODULE_FILE", loaders_cache, true);
 	//fix loaders cache
-	FILE *in  = fopen(STR("%s/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache.in", bundle), "r");
-	if (!in){
-		g_error("Can not access to application bundle: %s\n", bundle);
+	int c = fpstrrep(STR("%s/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache.in", bundle), loaders_cache, "$bundle", bundle);
+	if (c < 0){
+		g_error("fpstrrep: file access error\n");
 		return 1;
 	}
-	FILE *out = fopen(loaders_cache, "w");
-	if (!out){
-		g_error("Can not write to work directory: %s\n", workdir);
-		return 1;
-	}
-	strfrep(in, out, "$bundle", bundle);
-	fclose(in); fclose(out);
 #endif
 
 	//copy files from bundle
