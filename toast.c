@@ -2,7 +2,7 @@
  * File              : toast.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 13.10.2022
- * Last Modified Date: 13.10.2022
+ * Last Modified Date: 14.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -37,7 +37,8 @@ GtkWidget * gtk_toast_new(){
 	g_object_set_data(G_OBJECT(toast), "cancelButton", cancelButton);
 	
 	//close button
-	GtkWidget * closeButton = gtk_button_new_with_label("x");
+	//GtkWidget * closeButton = gtk_button_new_with_label("x");
+	GtkWidget * closeButton = gtk_button_new_from_icon_name("window-close-symbolic", GTK_ICON_SIZE_BUTTON);
 	gtk_button_set_relief(GTK_BUTTON(closeButton), GTK_RELIEF_NONE);
 	gtk_widget_set_receives_default(closeButton, TRUE);
 	gtk_box_pack_start(GTK_BOX(box), closeButton, FALSE, TRUE, 1);

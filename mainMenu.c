@@ -2,7 +2,7 @@
  * File              : mainMenu.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 15.03.2022
- * Last Modified Date: 13.10.2022
+ * Last Modified Date: 15.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -30,21 +30,28 @@ void gstroybat_app_menu_about_responce(GtkDialog *dialog, gint responce, gpointe
 
 static void gstroybat_app_menu_about_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
+	GError *error;
 	const char *text = "Помощь строительным организациям в составлении смет";
 	const char *version = "1.0";
 	const char *authors[] = {"Игорь Семенцов", "Алексей Николайчук", NULL}; 
 	
+
 	char *license; gsize size;	
-	GError *error = NULL;
+	error = NULL;
 	g_file_get_contents("License.md", &license, &size, &error);
 	if (error)
 		g_error("%s", error->message);
 
+	error = NULL;
+	GdkPixbuf *icon = gdk_pixbuf_new_from_file("icon.png", &error);
+	if (error)
+		g_error("%s", error->message);	
+
 	GtkWidget *dialog = gtk_about_dialog_new();
+	gtk_about_dialog_set_logo(GTK_ABOUT_DIALOG(dialog), icon);
 	gtk_about_dialog_set_program_name(GTK_ABOUT_DIALOG(dialog), "GStroyBat");
 	gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(dialog), version);
 	gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(dialog), "ООО \"Айти Пром\"");
-	gtk_about_dialog_set_logo_icon_name(GTK_ABOUT_DIALOG(dialog), "gstroybat.png");
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(dialog), authors);
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(dialog), text);
 	gtk_about_dialog_set_license_type(GTK_ABOUT_DIALOG(dialog), GTK_LICENSE_BSD_3);
@@ -55,7 +62,7 @@ static void gstroybat_app_menu_about_cb (GSimpleAction *action, GVariant *parame
 	
 	g_signal_connect (dialog, "response", G_CALLBACK (gstroybat_app_menu_about_responce), NULL);
 
-	gtk_widget_show_all(dialog);
+	gtk_widget_show(dialog);
 }
 
 
@@ -80,7 +87,10 @@ const GActionEntry gstroybat_app_menu_app_actions[] = {
 };
 
 void gstroybat_application_menu(GtkApplication *app){
-	g_action_map_add_action_entries (G_ACTION_MAP (app), gstroybat_app_menu_app_actions, G_N_ELEMENTS (gstroybat_app_menu_app_actions), app); //activate menu actions
+	g_action_map_add_action_entries (G_ACTION_MAP (app), 
+			gstroybat_app_menu_app_actions, 
+			G_N_ELEMENTS (gstroybat_app_menu_app_actions), 
+			app); //activate menu actions
 
 	
 	//app menu for MacOS
@@ -137,11 +147,11 @@ void gstroybat_application_menu(GtkApplication *app){
 	g_menu_append (edit, "Копировать", "app.copy");  
 	g_menu_append (edit, "Вставить", "app.paste");  
 
+#ifndef __APPLE__
 	//Help menu
 	GMenu *help = g_menu_new(); //edit item
 	g_menu_append_submenu(menuBar, "Помощь", G_MENU_MODEL(help)); 
 
-#ifndef __APPLE__
 	//add to menubar for not apple
 	//preferences
 	GMenu *preferences_section = g_menu_new(); //section
@@ -159,10 +169,10 @@ void gstroybat_application_menu(GtkApplication *app){
 	GMenu *about_section = g_menu_new(); //section
 	g_menu_append (about_section, "О приложении", "app.about");  
 	g_menu_append_section (help, NULL, G_MENU_MODEL(about_section));
+	g_object_unref (help);
 #endif	
 	gtk_application_set_menubar (GTK_APPLICATION (app), G_MENU_MODEL (menuBar));
 	g_object_unref (filemenu);
 	g_object_unref (edit);
-	g_object_unref (help);
 	g_object_unref (menuBar);	
 }

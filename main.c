@@ -2,7 +2,7 @@
  * File              : main.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 13.10.2022
+ * Last Modified Date: 15.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -10,6 +10,7 @@
 #include "getbundle.h"
 #include "gstroybat.h"
 #include "openfile.h"
+#include "stroybat/kdata/cYandexDisk/strfind.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,18 +33,41 @@ int YD_callback(void *user_data, char *token, time_t expires, char *reftoken, ch
 
 int main(int argc, char *argv[])
 {
+	//get bundle directory
+	char *bundle = getbundle(argv);
+	if (!bundle){
+		g_error("can't get application bundle\n");
+		return 1;
+	}
+	
 	//crete directory in home dir
 	char workdir[BUFSIZ];
 	sprintf(workdir, "%s/%s", g_get_home_dir(), "gstroybat");
 	g_mkdir_with_parents(workdir, 0755);
 	
-	//copy files from bundle
-	char *bundle = getbundle(argv);
-	if (!bundle){
-		printf("can't get application bundle\n");
+	//for MacOS set gtk_pixbuf paths
+#ifdef __APPLE__
+	char * loaders_cache = STR("%s/gdk-pixbuf-loaders.cache", workdir); 
+	char * loaders_dir   = STR("%s/lib/gdk-pixbuf-2.0/2.10.0/loaders", bundle); 
+	setenv("GDK_PIXBUF_MODULEDIR",   loaders_dir,   true);
+	setenv("GDK_PIXBUF_MODULE_FILE", loaders_cache, true);
+	//fix loaders cache
+	FILE *in  = fopen(STR("%s/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache.in", bundle), "r");
+	if (!in){
+		g_error("Can not access to application bundle: %s\n", bundle);
 		return 1;
 	}
-	char *files[] = {"stroybat.db", "Template.xlsx", "gstroybat.png", "License.md", NULL};
+	FILE *out = fopen(loaders_cache, "w");
+	if (!out){
+		g_error("Can not write to work directory: %s\n", workdir);
+		return 1;
+	}
+	strfrep(in, out, "$bundle", bundle);
+	fclose(in); fclose(out);
+#endif
+
+	//copy files from bundle
+	char *files[] = {"stroybat.db", "Template.xlsx", "icon.png", "License.md", NULL};
 	for (int i = 0; files[i]; ++i) {
 		GFile *sfile = g_file_new_build_filename(bundle,  files[i], NULL);
 		GFile *dfile = g_file_new_build_filename(workdir, files[i], NULL);
@@ -65,14 +89,14 @@ int main(int argc, char *argv[])
 	printf("init with token: %s\n", token);
 
 	//init database
-	stroybat_init(DATABASE, token, NULL, init_database_callback);
+	/*stroybat_init(DATABASE, token, NULL, init_database_callback);*/
 
 	//init GTK
 	GtkApplication *app = gtk_application_new ("kuzm.ig.gstroybat", 0);
 	g_signal_connect (app, "activate", G_CALLBACK (gstroybat_application_on_activate), NULL); 
 
 	//add Yandex Disk connection window (background) 
-	YDConnect(app, YD_callback);
+	/*YDConnect(app, YD_callback);*/
 	
 	//run gtk
 	return g_application_run (G_APPLICATION (app), argc, argv);

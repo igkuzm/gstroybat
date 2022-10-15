@@ -55,8 +55,8 @@ add_subdirectory(${STROYBAT_SOURCE_DIR})
 set(RESOURCE_FILES 
 	stroybat/stroybat.db 
 	stroybat/Template.xlsx
-	AppIcons/gstroybat.png
 	AppIcons/AppIcon.png
+	AppIcons/icon.png
 	License.md	
 )
 
@@ -146,6 +146,7 @@ if (APPLE)
 	execute_process(
 		COMMAND echo 
 		"#/bin/bash
+		codesign --force --timestamp=none --sign \"${IDENTITY}\" ${CMAKE_BINARY_DIR}/${TARGET}.app/Contents/Resources/lib/*
 		codesign --force --timestamp=none --sign \"${IDENTITY}\" ${CMAKE_BINARY_DIR}/${TARGET}.app/Contents/Frameworks/*
 		codesign --force --timestamp=none --sign \"${IDENTITY}\" ${CMAKE_BINARY_DIR}/${TARGET}.app
 		" 
@@ -174,6 +175,10 @@ if (APPLE)
 			)			
 			execute_process(COMMAND
 				cp AppIcon.icns \"${CMAKE_BINARY_DIR}/${TARGET}.app/Contents/Resources\" 
+			)		
+			execute_process(COMMAND
+				cp -rf \"${CMAKE_CURRENT_SOURCE_DIR}/macos/lib\"
+				\"${CMAKE_BINARY_DIR}/${TARGET}.app/Contents/Resources/.\" 
 			)		
 			execute_process(COMMAND
 				chmod +x codesign.sh
@@ -212,6 +217,8 @@ elseif (WIN32)
 
 	install(FILES ${WebKitEngine} DESTINATION . COMPONENT WebKitEngineInstaller)	
 	install(FILES ${GTKAPI} DESTINATION bin COMPONENT GTK3_runtime)	
+	install(DIRECTORY ${WINAPI_GTK}/${ARCHDIR}/gdk-pixbuf-2.0 DESTINATION lib COMPONENT GTK3_runtime)	
+	install(DIRECTORY ${CMAKE_SOURCE_DIR}/AppIcons/icons DESTINATION share COMPONENT GTK3_runtime)	
 	install(FILES ${WEBVIEW2} DESTINATION bin COMPONENT WebView2_runtime)	
 	install(FILES ${CURL} DESTINATION bin COMPONENT libcurl_runtime)	
 	install(FILES ${RESOURCE_FILES} DESTINATION bin COMPONENT resources)	
