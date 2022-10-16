@@ -52,7 +52,13 @@ int main(int argc, char *argv[])
 	setenv("GDK_PIXBUF_MODULEDIR",   loaders_dir,   true);
 	setenv("GDK_PIXBUF_MODULE_FILE", loaders_cache, true);
 	//fix loaders cache
-	int c = fpstrrep(STR("%s/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache.in", bundle), loaders_cache, "$bundle", bundle);
+	int c = fpstrrep(
+			STR("%s/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache.in", bundle), 
+			loaders_cache, 
+			"$bundle", 
+			bundle
+			);
+
 	if (c < 0){
 		g_error("fpstrrep: file access error\n");
 		return 1;
@@ -60,7 +66,14 @@ int main(int argc, char *argv[])
 #endif
 
 	//copy files from bundle
-	char *files[] = {"stroybat.db", "Template.xlsx", "icon.png", "License.md", NULL};
+	char *files[] = 
+	{
+		"stroybat.db", 
+		"Template.xlsx", 
+		"icon.png", 
+		"License.md", 
+		NULL
+	};
 	for (int i = 0; files[i]; ++i) {
 		GFile *sfile = g_file_new_build_filename(bundle,  files[i], NULL);
 		GFile *dfile = g_file_new_build_filename(workdir, files[i], NULL);
@@ -82,14 +95,14 @@ int main(int argc, char *argv[])
 	printf("init with token: %s\n", token);
 
 	//init database
-	/*stroybat_init(DATABASE, token, NULL, init_database_callback);*/
+	stroybat_init(DATABASE, token, NULL, init_database_callback);
 
 	//init GTK
 	GtkApplication *app = gtk_application_new ("kuzm.ig.gstroybat", 0);
 	g_signal_connect (app, "activate", G_CALLBACK (gstroybat_application_on_activate), NULL); 
 
 	//add Yandex Disk connection window (background) 
-	/*YDConnect(app, YD_callback);*/
+	YDConnect(app, YD_callback);
 	
 	//run gtk
 	return g_application_run (G_APPLICATION (app), argc, argv);
