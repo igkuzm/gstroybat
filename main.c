@@ -49,20 +49,16 @@ int main(int argc, char *argv[])
 #ifdef __APPLE__
 	char * loaders_cache = STR("%s/gdk-pixbuf-loaders.cache", workdir); 
 	char * loaders_dir   = STR("%s/lib/gdk-pixbuf-2.0/2.10.0/loaders", bundle); 
-	setenv("GDK_PIXBUF_MODULEDIR",   loaders_dir,   true);
 	setenv("GDK_PIXBUF_MODULE_FILE", loaders_cache, true);
+	setenv("GDK_PIXBUF_MODULEDIR",   loaders_dir,   true);
 	//fix loaders cache
-	int c = fpstrrep(
+	remove(loaders_cache);
+	fpstrrep(
 			STR("%s/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache.in", bundle), 
 			loaders_cache, 
 			"$bundle", 
 			bundle
 			);
-
-	if (c < 0){
-		g_error("fpstrrep: file access error\n");
-		return 1;
-	}
 #endif
 
 	//copy files from bundle

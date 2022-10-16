@@ -2,33 +2,33 @@
  * File              : mainMenu.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 15.03.2022
- * Last Modified Date: 15.10.2022
+ * Last Modified Date: 16.10.2022
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
 #include "gstroybat.h"
 #include <stdio.h>
 
-static void gstroybat_app_menu_yd_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+static void yd_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
 	YDShow();
 }
 
-static void gstroybat_app_menu_excel_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+static void excel_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
 	GObject *app = user_data;
 	GtkButton * makeExcelButton = g_object_get_data(app, "makeExcelButton"); 
 	make_excel(makeExcelButton, user_data);
 }
 
-void gstroybat_app_menu_about_responce(GtkDialog *dialog, gint responce, gpointer userdata){
+void about_responce(GtkDialog *dialog, gint responce, gpointer userdata){
 	if (responce == GTK_RESPONSE_CLOSE) {
 		gtk_widget_destroy(GTK_WIDGET(dialog));
 	}	
 	gtk_widget_destroy(GTK_WIDGET(dialog));
 }
 
-static void gstroybat_app_menu_about_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+static void about_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
 	GError *error;
 	const char *text = "Помощь строительным организациям в составлении смет";
@@ -60,39 +60,38 @@ static void gstroybat_app_menu_about_cb (GSimpleAction *action, GVariant *parame
 		free(license);
 	}
 	
-	g_signal_connect (dialog, "response", G_CALLBACK (gstroybat_app_menu_about_responce), NULL);
+	g_signal_connect (dialog, "response", G_CALLBACK (about_responce), NULL);
 
 	gtk_widget_show(dialog);
 }
 
 
-static void gstroybat_app_menu_preferences_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+static void preferences_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
 
 }
 
-static void gstroybat_app_menu_quit_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
+static void quit_cb (GSimpleAction *action, GVariant *parameter, gpointer user_data)
 {
 	g_print("QUIT\n");
 	g_application_quit(G_APPLICATION(user_data));
 }
 
-const GActionEntry gstroybat_app_menu_app_actions[] = {
-	{ "quit", gstroybat_app_menu_quit_cb },
-	{ "excel", gstroybat_app_menu_excel_cb },
-	{ "yd", gstroybat_app_menu_yd_cb },
-	{ "preferences", gstroybat_app_menu_preferences_cb },
-	{ "about", gstroybat_app_menu_about_cb },
-	NULL
+const GActionEntry app_actions[] = {
+	{ "quit", quit_cb },
+	{ "excel", excel_cb },
+	{ "yd", yd_cb },
+	{ "preferences", preferences_cb },
+	{ "about", about_cb }
 };
 
 void gstroybat_application_menu(GtkApplication *app){
-	g_action_map_add_action_entries (G_ACTION_MAP (app), 
-			gstroybat_app_menu_app_actions, 
-			G_N_ELEMENTS (gstroybat_app_menu_app_actions), 
+	g_action_map_add_action_entries (
+			G_ACTION_MAP (app), 
+			app_actions, 
+			G_N_ELEMENTS (app_actions), 
 			app); //activate menu actions
 
-	
 	//app menu for MacOS
 #ifdef __APPLE__
 	GMenu *appmenu = g_menu_new(); //main application menu
