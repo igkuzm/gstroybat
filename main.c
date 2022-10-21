@@ -51,8 +51,10 @@ int main(int argc, char *argv[])
 	char * loaders_dir   = STR("%s/lib/gdk-pixbuf-2.0/2.10.0/loaders", bundle); 
 	setenv("GDK_PIXBUF_MODULE_FILE", loaders_cache, true);
 	setenv("GDK_PIXBUF_MODULEDIR",   loaders_dir,   true);
+	setenv("GTK_PATH",        bundle, true);
+	setenv("GTK_DATA_PREFIX", bundle, true);
+	setenv("GTK_PATH",        bundle, true);
 	//fix loaders cache
-	remove(loaders_cache);
 	fpstrrep(
 			STR("%s/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache.in", bundle), 
 			loaders_cache, 

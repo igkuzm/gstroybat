@@ -181,6 +181,10 @@ if (APPLE)
 				\"${CMAKE_BINARY_DIR}/${TARGET}.app/Contents/Resources/.\" 
 			)		
 			execute_process(COMMAND
+				cp -rf \"${CMAKE_CURRENT_SOURCE_DIR}/macos/share\"
+				\"${CMAKE_BINARY_DIR}/${TARGET}.app/Contents/Resources/.\" 
+			)		
+			execute_process(COMMAND
 				chmod +x codesign.sh
 			)
 			execute_process(COMMAND
@@ -218,6 +222,7 @@ elseif (WIN32)
 	install(FILES ${WebKitEngine} DESTINATION . COMPONENT WebKitEngineInstaller)	
 	install(FILES ${GTKAPI} DESTINATION bin COMPONENT GTK3_runtime)	
 	install(DIRECTORY ${WINAPI_GTK}/${ARCHDIR}/gdk-pixbuf-2.0 DESTINATION lib COMPONENT GTK3_runtime)	
+	install(DIRECTORY ${WINAPI_GTK}/share DESTINATION . COMPONENT GTK3_runtime)	
 	install(DIRECTORY ${CMAKE_SOURCE_DIR}/AppIcons/icons DESTINATION share COMPONENT GTK3_runtime)	
 	install(FILES ${WEBVIEW2} DESTINATION bin COMPONENT WebView2_runtime)	
 	install(FILES ${CURL} DESTINATION bin COMPONENT libcurl_runtime)	
