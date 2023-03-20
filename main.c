@@ -25,8 +25,7 @@ int YD_callback(void *user_data, char *token, time_t expires, char *reftoken, ch
 		GtkToast * toast = g_object_get_data(app, "mainWindow_toast");
 		gtk_toast_show_message(toast, "Yandex Disk подключен", 3, NULL, NULL, NULL, NULL);		
 
-		/*needToUpdate = true;*/
-		/*stroybat_init(DATABASE, token, NULL, init_database_callback);*/
+		stroybat_set_yandex_token(token);
 	}
 	return 0;
 }
