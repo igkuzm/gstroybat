@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 
 set(TARGET gstroybat)
 
-set(VERSION 1.0)
+set(VERSION 2.0)
 
 project(${TARGET} 
 	VERSION ${VERSION} 
@@ -111,7 +111,7 @@ set(CPACK_PACKAGE_FILE_NAME "${TARGET}-${VERSION}")
 
 if (APPLE)
 	SET(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
-	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS}  -framework WebKit -ObjC -lstdc++ ${ADDFLAGS}")
+	SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS}  -framework WebKit -framework Foundation -ObjC -lstdc++ ${ADDFLAGS}")
 
 	#add icons
 	target_sources(${TARGET} PRIVATE AppIcons/Assets.xcassets)

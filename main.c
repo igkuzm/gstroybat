@@ -2,7 +2,7 @@
  * File              : main.c
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 10.02.2022
- * Last Modified Date: 16.10.2022
+ * Last Modified Date: 20.03.2023
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
@@ -10,7 +10,7 @@
 #include "getbundle.h"
 #include "gstroybat.h"
 #include "openfile.h"
-#include "stroybat/kdata/cYandexDisk/strfind.h"
+#include "stroybat/kdata2/cYandexDisk/strfind.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

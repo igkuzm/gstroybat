@@ -2,13 +2,13 @@
  * File              : YDConnect.cc
  * Author            : Igor V. Sementsov <ig.kuzm@gmail.com>
  * Date              : 01.10.2022
- * Last Modified Date: 13.10.2022
+ * Last Modified Date: 20.03.2023
  * Last Modified By  : Igor V. Sementsov <ig.kuzm@gmail.com>
  */
 
 #include "gstroybat.h"
 #include "webview.h"
-#include "stroybat/kdata/cYandexDisk/cYandexDisk.h"
+#include "stroybat/kdata2/cYandexDisk/cYandexDisk.h"
 #include <cstddef>
 #include <cstdio>
 #include <stddef.h>
